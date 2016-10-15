@@ -1,9 +1,11 @@
 /*
  * 	int_handler(.h
  * 
- *  contains all the interrupt handler( function (will be called from idt.c)
+ *  contains all the interrupt handler function (will be called from idt.c)
  *
  */
+#ifndef INT_HANDLER_H
+#define INT_HANDLER_H
 /* Handlers for x86 reserved interrupts */
 
 /* Interrupt 0: Divide Zero Exception */
@@ -48,3 +50,5 @@ extern void xf_handler();
 
 /* The default interrupt handler, called from undefined entries of the IDT */
 extern void invalid_interrupt();
+
+#endif

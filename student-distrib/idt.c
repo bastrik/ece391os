@@ -7,6 +7,7 @@
 #include "idt.h"
 #include "x86_desc.h"
 #include "int_handler.h"
+#include "lib.h"
 
 /* 
  *	init_idt()
@@ -21,7 +22,7 @@
 void init_idt(){
 
  	/* loop index*/
- 	int i; seg_selector
+ 	int i;
 
  	/* Call LIDT to load the base address and length (limit) of the IDT *
  	 * (idt_desc_ptr is declared in x86_desc.S 							*/
@@ -31,27 +32,27 @@ void init_idt(){
  	for (i = 0; i < NUM_VEC; ++i){
 
  		/* Set the offset of the handler_addr */
-		SET_IDT_ENTRY(idt[vec], invalid_interrupt);
+		SET_IDT_ENTRY(idt[i], invalid_interrupt);
 		/* Segment selector set to kernel cs as specified in Appendix D */
-		idt[vec].seg_selector = KERNEL_CS;
+		idt[i].seg_selector = KERNEL_CS;
 
-		idt[vec].size = 1;
+		idt[i].size = 1;
 
 		/* Set gate descriptor to trap gate (except for 0x80 case) */
-		idt[vec].reserved0 = 0
-		idt[vec].reserved1 = 1;
-	 	idt[vec].reserved2 = 1;
+		idt[i].reserved0 = 0;
+		idt[i].reserved1 = 1;
+	 	idt[i].reserved2 = 1;
 
 	 	/* For the system call, we want the IF flag to be cleared s.t. it would not be interrupted.	*
 	 	 * So we made it go thru the interrupt gate instaed of trap gate						 	*/
-	 	idt[vec].reserved3 = (vec == SYS_CALL_INT) 1 : 0;
+	 	idt[i].reserved3 = (i == SYS_CALL_INT)? 1 : 0;
 
-	 	idt[vec].reserved4 = 0;
+	 	idt[i].reserved4 = 0;
 
 	 	/* Set the DPL */
-	 	idt[vec].dpl = (vec == SYS_CALL_INT) 3 : 0;
+	 	idt[i].dpl = (i == SYS_CALL_INT)? 3 : 0;
 
-	 	idt[vec].present = 1;
+	 	idt[i].present = 1;
  		
  	}
 

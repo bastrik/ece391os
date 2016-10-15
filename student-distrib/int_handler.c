@@ -4,6 +4,7 @@
  *  contains all the interrupt handler function (will be called from idt.c)
  *
  */
+#include "int_handler.h"
 
 /* Using this trick to define similar functions with dynamic function names  	*														*
  * See the link below for more detail											*
