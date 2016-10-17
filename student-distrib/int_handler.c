@@ -68,6 +68,6 @@ GENERATE_HANDLER(xf_handler, "Exception: SIMD Floating-Point Exception Error");
 
  void invalid_interrupt(){
  	cli();
- 	printf("Error: Interrupt invalid");
+ 	printf("Error: Undefined Interrupt");
  	sti();
  }
