@@ -12,6 +12,6 @@
 
 
 /* initialize the content of interrupt descriptor table */
-void init_idt();
+extern void init_idt();
 
 #endif

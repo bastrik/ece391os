@@ -8,6 +8,8 @@
 #include "x86_desc.h"
 #include "int_handler.h"
 #include "lib.h"
+#include "rtc.h"
+#include "keyboard.h"
 
 /* 
  *	init_idt()
@@ -78,5 +80,12 @@ void init_idt(){
  	SET_IDT_ENTRY(idt[17], ac_handler);
  	SET_IDT_ENTRY(idt[18], mc_handler);
  	SET_IDT_ENTRY(idt[19], xf_handler);
+
+ 	/* Set interrupt for RTC */
+ 	SET_IDT_ENTRY(idt[RTC_IDT_VEC], test_interrupts);
+
+ 	/* Set interrupt for Keyboard */
+ 	SET_IDT_ENTRY(idt[21], keyboard_handler);
+
  }
 

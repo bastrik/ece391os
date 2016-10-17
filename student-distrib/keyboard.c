@@ -77,7 +77,7 @@ void keyboard_handler() {
 
   /* make sure the scancode is recieved */
   do {
-    scancode = inb(KEYBOARD_PORT_DATA);
+    scancode = inb(KEYBOARD_DATA_PORT);
     if (scancode > 0){
       break;
     }

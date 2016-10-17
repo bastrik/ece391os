@@ -5,6 +5,7 @@
  *
  */
 #include "int_handler.h"
+#include "lib.h"
 
 /* Using this trick to define similar functions with dynamic function names  	*														*
  * See the link below for more detail											*
@@ -66,5 +67,7 @@ GENERATE_HANDLER(xf_handler, "Exception: SIMD Floating-Point Exception Error");
  */
 
  void invalid_interrupt(){
+ 	cli();
  	printf("Error: Interrupt invalid");
+ 	sti();
  }

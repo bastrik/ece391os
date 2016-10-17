@@ -34,7 +34,7 @@ rtc_init() {
 	outb((prevA & 0xF0) | rate, RTC_RW_PORT); //write only our rate to A. Rate is the bottom 4 bits.
 
 	/* enable able_irq */
-	winterrupts(IRQ2);
+	//winterrupts(IRQ2);
 	enable_irq(IRQ8);
 	
 }
