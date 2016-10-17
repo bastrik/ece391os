@@ -17,7 +17,7 @@
  *  INPUTS: none
  *  OUTPUTS: none
  *  RETURN VALUE: none
- *  SIDE EFFECTS: none
+ *  SIDE EFFECTS: Initialize the IDT entry
  */
 
 
@@ -82,7 +82,7 @@ void init_idt(){
  	SET_IDT_ENTRY(idt[19], xf_handler);
 
  	/* Set interrupt for RTC */
- 	SET_IDT_ENTRY(idt[RTC_IDT_VEC], test_interrupts);
+ 	SET_IDT_ENTRY(idt[RTC_IDT_VEC], rtc_handler);
 
  	/* Set interrupt for Keyboard */
  	SET_IDT_ENTRY(idt[21], keyboard_handler);
