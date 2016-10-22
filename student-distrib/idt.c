@@ -125,9 +125,25 @@ void invalid_interrupt(){
 void init_idt(){
 
  	/* loop index*/
- 	int i;
+ 	int i;		
 
- 	 /* Set the handler function for the x86 reserved interrupts *
+ 	/* set each idt entry */
+	for (i=0; i<NUM_VEC; i++)
+	{
+			idt[i].seg_selector = KERNEL_CS;
+			idt[i].present = 1;
+			idt[i].dpl = 0;
+			idt[i].reserved0 = 0;
+			idt[i].size = 1;
+			idt[i].reserved1 = 1;
+			idt[i].reserved2 = 1;
+			idt[i].reserved3 = (i == SYS_CALL_INT | i <= 0x20) ? 1 : 0;
+			idt[i].reserved4= 0x00;
+			
+			SET_IDT_ENTRY(idt[i], (uint32_t)&invalid_interrupt);
+	}
+
+	/* Set the handler function for the x86 reserved interrupts *
  	 * (According to Intel x86 instrution manual)				*
  	 * See int_handler.c for definitions for these handlers 	*/
  	SET_IDT_ENTRY(idt[0], (uint32_t)&de_handler);
@@ -148,41 +164,7 @@ void init_idt(){
  	SET_IDT_ENTRY(idt[16], (uint32_t)&mf_handler);
  	SET_IDT_ENTRY(idt[17], (uint32_t)&ac_handler);
  	SET_IDT_ENTRY(idt[18], (uint32_t)&mc_handler);
- 	SET_IDT_ENTRY(idt[19], (uint32_t)&xf_handler);					
-
- 	/* set each idt entry */
-	for (i=0; i<32; i++)
-	{
-		idt[i].seg_selector = KERNEL_CS;
-		idt[i].present = 1;
-		idt[i].dpl = 0;
-		idt[i].reserved0 = 0;
-		idt[i].size = 1;
-		idt[i].reserved1 = 1;
-		idt[i].reserved2 = 1;
-		idt[i].reserved3 = 1;
-		idt[i].reserved4= 0x00;
-		
-	}
-	
-	for (i=32; i<NUM_VEC; i++)
-	{
-		if (i != 0x80)
-		{
-			idt[i].seg_selector = KERNEL_CS;
-			idt[i].present = 1;
-			idt[i].dpl = 0;
-			idt[i].reserved0 = 0;
-			idt[i].size = 1;
-			idt[i].reserved1 = 1;
-			idt[i].reserved2 = 1;
-			idt[i].reserved3 = 0;
-			idt[i].reserved4= 0x00;
-			
-			SET_IDT_ENTRY(idt[i], (uint32_t)&invalid_interrupt);
-		}
-	}
-
+ 	SET_IDT_ENTRY(idt[19], (uint32_t)&xf_handler);		
 
  	/* Set interrupt for RTC */
  	SET_IDT_ENTRY(idt[RTC_IDT_VEC], (uint32_t)&rtc_handler);
