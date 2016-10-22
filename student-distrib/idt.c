@@ -6,10 +6,111 @@
  */
 #include "idt.h"
 #include "x86_desc.h"
-#include "int_handler.h"
 #include "lib.h"
 #include "rtc.h"
 #include "keyboard.h"
+
+
+void de_handler(){
+	printf("Exception: Divide Zero Error");
+	while(1);
+}
+
+void db_handler(){
+	printf("Exception: Debug");
+	while(1);
+}
+
+void nmi_handler(){
+	printf("Exception: Nonmaskable Interrupt");
+	while(1);
+}
+
+void bp_handler(){
+	printf("Exception: Breakpoint");
+	while(1);
+}
+
+void of_handler(){
+	printf("Exception: Overflow");
+	while(1);
+}
+
+void br_handler(){
+	printf("Exception: Bound range exceeded");
+	while(1);
+}
+
+void ud_handler(){
+	printf("Exception: Invalid Opcode");
+	while(1);
+}
+
+void nm_handler(){
+	printf("Exception: Device Not Available");
+	while(1);
+}
+
+void df_handler(){
+	printf("Exception: Double Fault");
+	while(1);
+}
+
+void cs_handler(){
+	printf("Exception: Coprocessor Segment Overrun");
+	while(1);
+}
+
+void ts_handler(){
+	printf("Exception: Invalid TSS Exception");
+	while(1);
+}
+
+void np_handler(){
+	printf("Exception: Segment Not Present");
+	while(1);
+}
+
+void ss_handler(){
+	printf("Exception: Stack Fault");
+	while(1);
+}
+
+void gp_handler(){
+	printf("Exception: General Protection");
+	while(1);
+}
+
+void pf_handler(){
+	printf("Exception: Page-Fault");
+	while(1);
+}
+
+void mf_handler(){
+	printf("Exception: x87 FPU Floating-Point Error");
+	while(1);
+}
+
+void ac_handler(){
+	printf("Exception: Alignment Check Error");
+	while(1);
+}
+
+void mc_handler(){
+	printf("Exception: Machine-Check Error");
+	while(1);
+}
+
+void xf_handler(){
+	printf("Exception: SIMD Floating-Point Exception Error");
+	while(1);
+}
+
+void invalid_interrupt(){
+ 	cli();
+ 	printf("Error: Undefined Interrupt");
+ 	sti();
+}
 
 /* 
  *	init_idt()
@@ -26,66 +127,69 @@ void init_idt(){
  	/* loop index*/
  	int i;
 
- 	/* Call LIDT to load the base address and length (limit) of the IDT *
- 	 * (idt_desc_ptr is declared in x86_desc.S 							*/
- 	lidt(idt_desc_ptr);
-
- 	/* loop to initialize every entry of IDT */
- 	for (i = 0; i < NUM_VEC; ++i){
-
- 		/* Set the offset of the handler_addr */
-		SET_IDT_ENTRY(idt[i], invalid_interrupt);
-		/* Segment selector set to kernel cs as specified in Appendix D */
-		idt[i].seg_selector = KERNEL_CS;
-
-		idt[i].size = 1;
-
-		/* Set gate descriptor to trap gate (except for 0x80 case) */
-		idt[i].reserved0 = 0;
-		idt[i].reserved1 = 1;
-	 	idt[i].reserved2 = 1;
-
-	 	/* For the system call, we want the IF flag to be cleared s.t. it would not be interrupted.	*
-	 	 * So we made it go thru the interrupt gate instaed of trap gate						 	*/
-	 	idt[i].reserved3 = (i == SYS_CALL_INT)? 1 : 0;
-
-	 	idt[i].reserved4 = 0;
-
-	 	/* Set the DPL */
-	 	idt[i].dpl = (i == SYS_CALL_INT)? 3 : 0;
-
-	 	idt[i].present = 1;
- 		
- 	}
-
- 	/* Set the handler function for the x86 reserved interrupts *
+ 	 /* Set the handler function for the x86 reserved interrupts *
  	 * (According to Intel x86 instrution manual)				*
  	 * See int_handler.c for definitions for these handlers 	*/
- 	SET_IDT_ENTRY(idt[0], de_handler);
- 	SET_IDT_ENTRY(idt[1], db_handler);
- 	SET_IDT_ENTRY(idt[2], nmi_handler);
- 	SET_IDT_ENTRY(idt[3], bp_handler);
- 	SET_IDT_ENTRY(idt[4], of_handler);
- 	SET_IDT_ENTRY(idt[5], br_handler);
- 	SET_IDT_ENTRY(idt[6], ud_handler);
- 	SET_IDT_ENTRY(idt[7], nm_handler);
- 	SET_IDT_ENTRY(idt[8], df_handler);
- 	SET_IDT_ENTRY(idt[9], cs_handler);
- 	SET_IDT_ENTRY(idt[10], ts_handler);
- 	SET_IDT_ENTRY(idt[11], np_handler);
- 	SET_IDT_ENTRY(idt[12], ss_handler);
- 	SET_IDT_ENTRY(idt[13], gp_handler);
- 	SET_IDT_ENTRY(idt[14], pf_handler);
- 	SET_IDT_ENTRY(idt[16], mf_handler);
- 	SET_IDT_ENTRY(idt[17], ac_handler);
- 	SET_IDT_ENTRY(idt[18], mc_handler);
- 	SET_IDT_ENTRY(idt[19], xf_handler);
+ 	SET_IDT_ENTRY(idt[0], (uint32_t)&de_handler);
+ 	SET_IDT_ENTRY(idt[1], (uint32_t)&db_handler);
+ 	SET_IDT_ENTRY(idt[2], (uint32_t)&nmi_handler);
+ 	SET_IDT_ENTRY(idt[3], (uint32_t)&bp_handler);
+ 	SET_IDT_ENTRY(idt[4], (uint32_t)&of_handler);
+ 	SET_IDT_ENTRY(idt[5], (uint32_t)&br_handler);
+ 	SET_IDT_ENTRY(idt[6], (uint32_t)&ud_handler);
+ 	SET_IDT_ENTRY(idt[7], (uint32_t)&nm_handler);
+ 	SET_IDT_ENTRY(idt[8], (uint32_t)&df_handler);
+ 	SET_IDT_ENTRY(idt[9], (uint32_t)&cs_handler);
+ 	SET_IDT_ENTRY(idt[10], (uint32_t)&ts_handler);
+ 	SET_IDT_ENTRY(idt[11], (uint32_t)&np_handler);
+ 	SET_IDT_ENTRY(idt[12], (uint32_t)&ss_handler);
+ 	SET_IDT_ENTRY(idt[13], (uint32_t)&gp_handler);
+ 	SET_IDT_ENTRY(idt[14], (uint32_t)&pf_handler);
+ 	SET_IDT_ENTRY(idt[16], (uint32_t)&mf_handler);
+ 	SET_IDT_ENTRY(idt[17], (uint32_t)&ac_handler);
+ 	SET_IDT_ENTRY(idt[18], (uint32_t)&mc_handler);
+ 	SET_IDT_ENTRY(idt[19], (uint32_t)&xf_handler);					
+
+ 	/* set each idt entry */
+	for (i=0; i<32; i++)
+	{
+		idt[i].seg_selector = KERNEL_CS;
+		idt[i].present = 1;
+		idt[i].dpl = 0;
+		idt[i].reserved0 = 0;
+		idt[i].size = 1;
+		idt[i].reserved1 = 1;
+		idt[i].reserved2 = 1;
+		idt[i].reserved3 = 1;
+		idt[i].reserved4= 0x00;
+		
+	}
+	
+	for (i=32; i<NUM_VEC; i++)
+	{
+		if (i != 0x80)
+		{
+			idt[i].seg_selector = KERNEL_CS;
+			idt[i].present = 1;
+			idt[i].dpl = 0;
+			idt[i].reserved0 = 0;
+			idt[i].size = 1;
+			idt[i].reserved1 = 1;
+			idt[i].reserved2 = 1;
+			idt[i].reserved3 = 0;
+			idt[i].reserved4= 0x00;
+			
+			SET_IDT_ENTRY(idt[i], (uint32_t)&invalid_interrupt);
+		}
+	}
+
 
  	/* Set interrupt for RTC */
- 	SET_IDT_ENTRY(idt[RTC_IDT_VEC], rtc_handler);
+ 	SET_IDT_ENTRY(idt[RTC_IDT_VEC], (uint32_t)&rtc_handler);
 
  	/* Set interrupt for Keyboard */
- 	SET_IDT_ENTRY(idt[21], keyboard_handler);
+ 	SET_IDT_ENTRY(idt[KEYBOARD_IDT_VEC], (uint32_t)&keyboard_handler);
+
 
  }
 

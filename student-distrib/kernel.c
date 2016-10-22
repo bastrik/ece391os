@@ -154,6 +154,14 @@ entry (unsigned long magic, unsigned long addr)
 	 * PIC, any other initialization stuff... */
 	/* Init the idt */
 	init_idt();
+	asm ("lidt idt_desc_ptr");
+	
+	int i;
+	for (i=0; i<16; i++)
+	{
+		disable_irq(i);
+	}
+	
 	/* Init the PIC */
 	i8259_init();
 	/* Init Paging */
@@ -167,7 +175,7 @@ entry (unsigned long magic, unsigned long addr)
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
 	printf("Enabling Interrupts\n");
-	printf("%d", 1/0);
+	//printf("%d", 1/0);
 	sti();
 
 	/* Execute the first program (`shell') ... */
