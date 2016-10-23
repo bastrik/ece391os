@@ -17,6 +17,27 @@
 
 #define FILE_NAME_MAX_L		32
 
+extern file_descriptor_t fd[8]; 	// checkpoint 2
+
+/*
+ * file descriptor
+ */
+typedef struct {
+	uint32_t fotp			// file operations table pointer
+	uint32_t inode 			// inode pointer
+	uint32_t file_pos 		// file position
+	uint32_t flags 			// flags
+} file_descriptor_t;
+
+/*
+ * File operations table pointer (move at a later date??)
+ */
+typedef struct {
+	int32_t (*open)(uint8_t*)			// file operations table pointer
+	int32_t (*close)(int32_t)			// inode pointer
+	int32_t (*read)(int32_t, void*, int32_t)	// file position
+	int32_t (*write)(int32_t, void*, int32_t)	// STUB
+} fotp_t;
 
 /* System Statistics struct 	*
  *								*/
