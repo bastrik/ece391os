@@ -10,6 +10,9 @@ inode_t* inode_start;
 
 uint32_t data_block_addr;
 
+fotp_t file_fotp;
+fotp_t dir_fotp;
+
 /* 
  *	fs_init()
  *  DESCRIPTION: initialize the file system
@@ -31,6 +34,19 @@ void fs_init(uint32_t start_addr)
 	/* assign the start address of the first data block */
  	data_block_addr = (uint32_t) inode_start + (boot_block -> sys_stat).num_inode * BLOCK_SIZE;
 
+ 	// for checkpoint 2 we want to init our file descriptor
+ 	fd[0].flags = 1;	// stdin
+ 	fd[1].flags = 1;	// stdout
+
+ 	file_fotp.open = (uint32_t)&(file_open);
+ 	file_fotp.close = (uint32_t)&(file_close);
+ 	file_fotp.read = (uint32_t)&(file_read);
+ 	file_fotp.write = (uint32_t)&(file_write);
+
+ 	dir_fotp.open = (uint32_t)&(dir_open);
+ 	dir_fotp.close = (uint32_t)&(dir_close);
+ 	dir_fotp.read = (uint32_t)&(dir_read);
+ 	dir_fotp.write = (uint32_t)&(dir_write);
 }
 
 
@@ -110,7 +126,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 	
 	cur_inode_db_index = offset / BLOCK_SIZE;
 
-	if (cur_inode_db_index >= inode_start[inode].length) return -1; 	/* If the starting data block is out of bound reutrn -1 */
+	if (cur_inode_db_index >= inode_start[inode].legnth) return -1; 	/* If the starting data block is out of bound reutrn -1 */
 
 	cur_db_index = inode_start[inode].data_block_index[cur_inode_db_index];
 	cur_db_addr = data_block_addr + cur_db_index * BLOCK_SIZE;
@@ -122,7 +138,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 		if (start_offset + remain_length < BLOCK_SIZE)
 		{
 			memcpy((void*) (buf + length - remain_length), (void *) start_addr, remain_length);
-			break;
+			return length;
 		}
 		else 
 		{
@@ -130,12 +146,54 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 			remain_length -= (BLOCK_SIZE - start_offset);
 			start_offset = 0;
 			cur_inode_db_index++;
-			if (cur_inode_db_index >= inode_start[inode].length) break; 	/* If the next data block is does not exist in inode, stop*/
+			if (cur_inode_db_index >= inode_start[inode].length) return 0; 	/* If the next data block is does not exist in inode, stop*/
 			cur_db_index = inode_start[inode].data_block_index[cur_inode_db_index];
 			start_addr = data_block_addr + cur_db_index * BLOCK_SIZE;
 		}
 	}
 
 
-	return 0;
+	return -1; 	// should not reach here
 }
+
+
+//TODO: fncs
+
+int32_t file_open (const uint8_t* filename)
+{
+	return 0; 	// do nothing becuase nothing means everything
+}
+int32_t file_read (int32_t fd, void* buf, int32_t nbytes)
+{
+	uint32_t offset = fd[fd].file_pos;
+	int ret = read_data(fd[fd].inode, offset, buf, nbytes);
+	if (ret == 0 || -1)
+		ret = 0;
+	fd[fd].file_pos = offset + ret;	// WILL cause issues when buffer length < nbytes
+	return ret;
+} 
+int32_t file_write (int32_t fd, void* buf, int32_t nbytes)
+{
+	return 0; // STUB
+}
+
+int32_t dir_open
+{
+//stub
+} 
+int32_t dir_close
+{
+//stub
+} 
+int32_t dir_read
+{
+//TODO
+} 
+int32_t dir_write
+{
+//stub
+}
+
+
+
+//TODO: test case
