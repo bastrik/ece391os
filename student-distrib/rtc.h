@@ -36,5 +36,7 @@ extern uint32_t rtc_open();
 extern uint32_t rtc_close();
 extern uint32_t rtc_read();
 extern uint32_t rtc_write(int32_t fd, const uint32_t* buf, int32_t nbyte);
+extern void test_rtc(int freq, int flag);
+
 
 #endif /* _RTC_H */
