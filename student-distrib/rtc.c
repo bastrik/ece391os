@@ -54,7 +54,7 @@ void rtc_handler() {
 	outb(RTC_STATUS_REGISTER_C, RTC_INDEX_PORT);
 	inb(RTC_RW_PORT);
 	
-	test_interrupts();
+	//test_interrupts();
 	
 	send_eoi(IRQ8);
 	sti();

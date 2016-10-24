@@ -10,7 +10,6 @@
 #include "types.h"
 #include "lib.h"
 #include "i8259.h"
-#include "terminal.h"
 
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_IRQ_NUM   1
@@ -24,8 +23,8 @@
 #define CAPS  0x00
 #define SHIFT 0x01
 #define CTRL  0x02
-#define PRESS   0x00
-#define RELEASE 0x01
+#define PRESS   0x01
+#define RELEASE 0x00
 
 /* keys with functionality */
 #define ENTER       0x1C

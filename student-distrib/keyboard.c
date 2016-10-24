@@ -7,7 +7,6 @@
 #include "types.h"
 #include "i8259.h"
 #include "lib.h"
-#include "terminal.h"
 //#include "system_calls.h"
 
 /* string buffer to be displayed on the screen */
@@ -95,19 +94,19 @@ void keyboard_handler() {
   /* Beginning of a critical section  */
   cli();
   uint8_t scancode = 0;
-
+  //printf("in handler");
   /* obtaining scan code from keyboard
    * credit to PS2/2 Keyboard - OSDev Wiki
    * http://wiki.osdev.org/Keyboard
    */
-  do {
-    if (inb(KEYBOARD_DATA_PORT)!= scancode) {
+/*  do {
+    if (inb(KEYBOARD_DATA_PORT)!= scancode) {*/
       scancode = inb(KEYBOARD_DATA_PORT);
-      if (scancode < 1) {
+/*      if (scancode < 1) {
         break;
       }
     }
-  } while(1);
+  } while(1);*/
 
   /* handles the obtained scan code */
   switch (scancode) {
@@ -115,7 +114,7 @@ void keyboard_handler() {
       enter_handler();
       break;
     case CAPSLOCK:
-      key_flag[CAPS] = PRESS;
+      key_flag[CAPS] = PRESS - key_flag[CAPS];
       break;
     case LSHIFT_PRESS:
       key_flag[SHIFT] = PRESS;
@@ -142,6 +141,8 @@ void keyboard_handler() {
       key_to_buffer(scancode);
       break;
   }
+
+
 
   /* system call check */
   //if (scancode < 0x80)
@@ -258,9 +259,11 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 
   int i, retval;
 
+  int8_t* read_buffer = (int8_t *)buf;
+ 
   /* fill the buffer */
   for (i = 0; (i < nbytes-1) && (i < KEY_BUFF_LEN); i++) {
-		buf[i] = key_buffer[i];
+		read_buffer[i] = key_buffer[i];
     if (key_buffer[i] == '\0')
       break;
   }

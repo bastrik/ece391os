@@ -68,7 +68,7 @@ void cursor_on_video() {
 *	Function: set the cursor coordinate to x=0, y=y+1
 */
 void set_cursor_enter() {
-  set_cursor(0, screen_y++);
+  set_cursor(0, ++screen_y);
 }
 
 /*
