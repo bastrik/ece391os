@@ -7,6 +7,12 @@
 
 #include "types.h"
 
+void set_cursor(uint32_t x, uint32_t y);
+void cursor_on_video();
+void set_cursor_enter();
+void set_cursor_backspace();
+void vert_scroll();
+
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 int32_t puts(int8_t *s);
@@ -36,12 +42,12 @@ static inline uint32_t inb(port)
 {
 	uint32_t val;
 	asm volatile("xorl %0, %0\n \
-			inb   (%w1), %b0" 
+			inb   (%w1), %b0"
 			: "=a"(val)
 			: "d"(port)
 			: "memory" );
 	return val;
-} 
+}
 
 /* Reads two bytes from two consecutive ports, starting at "port",
  * concatenates them little-endian style, and returns them zero-extended

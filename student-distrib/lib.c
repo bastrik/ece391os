@@ -12,13 +12,126 @@ static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
+
+/*
+* void set_cursor(uint32_t x, uint32_t y);
+*   Inputs: x -- x coordinate to set the cursor to
+*           y -- y coordinate to set the cursor to
+*   Return Value: none
+*	Function: Moves the cursor to a given coordinate
+*           If the input x exceeds NUM_COLS, move to next line
+*           If the input y exceeds NUM_ROWS, scroll down by one
+*/
+void set_cursor(uint32_t x, uint32_t y) {
+  /* check x boundary */
+  if (x >= NUM_COLS) {
+    screen_x = 0;
+    screen_y++;
+    cursor_on_video();
+    return;
+  }
+  else {
+    screen_x = x;
+  }
+
+  /* check y boundary */
+  if (y >= NUM_ROWS) {
+    vert_scroll();
+  }
+  else {
+    screen_y = y;
+  }
+
+  /* put it on the screen */
+	cursor_on_video();
+}
+
+/*
+* void cursor_on_video();
+*   Inputs: none
+*   Return Value: none
+*	Function: Moves the cursor to screen_x, screen_y coordinate
+*/
+void cursor_on_video() {
+  /* cursor LOW port to vga INDEX register */
+  outb(0x0F, 0x3D4);
+  outb((unsigned char)(NUM_COLS*screen_y + screen_x & 0xFF), 0x3D5);
+  /* cursor HIGH port to vga INDEX register */
+  outb(0x0E, 0x3D4);
+  outb((unsigned char)((NUM_COLS*screen_y + screen_x >> 8) & 0xFF), 0x3D5);
+}
+
+/*
+* void set_cursor_enter();
+*   Inputs: none
+*   Return Value: none
+*	Function: set the cursor coordinate to x=0, y=y+1
+*/
+void set_cursor_enter() {
+  set_cursor(0, screen_y++);
+}
+
+/*
+* void set_cursor_backspace();
+*   Inputs: none
+*   Return Value: none
+*	Function: erase One character and move the cursor to the left by one
+*                 If the cursor is on the left end of the line
+*                    move up by one line
+*/
+void set_cursor_backspace() {
+  /* modify the cursor location */
+  if (screen_x == 0) {
+    set_cursor(NUM_COLS-1, screen_y-1);
+  }
+  else {
+    set_cursor(screen_x-1, screen_y);
+  }
+
+  /* erase the character */
+  *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
+  *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+}
+
+/*
+* void vert_scroll()();
+*   Inputs: none
+*   Return Value: none
+*	Function: Moves each line on the display up by one and
+*                  then clears the bottom line
+*/
+void vert_scroll() {
+  int x, y;
+
+  /* change the video memory to move each line up by one */
+	for (x = 0; y < NUM_COLS; x++) {
+		for (y = 0; x < NUM_ROWS-1; y++) {
+			*(uint8_t *)(video_mem + ((NUM_COLS*y + x) << 1)) =
+                                *(uint8_t *)(video_mem + ((NUM_COLS*(y+1) + x) << 1));
+		}
+	}
+
+	/* clear the bottom line */
+	for (x = 0; x < NUM_COLS; x++) {
+		*(uint8_t *)(video_mem + ((NUM_COLS*(NUM_ROWS-1) + x) << 1)) = ' ';
+    *(uint8_t *)(video_mem + ((NUM_COLS*(NUM_ROWS-1) + x) << 1) + 1) = ATTRIB;
+	}
+
+  /* put the cursor on the bottom left corner*/
+	set_cursor(0, NUM_ROWS-1);
+  return;
+}
+
+/***************************************************************************************/
+/************ PROVIDED FUNCTIONS *******************************************************/
+/***************************************************************************************/
+
 /*
 * void clear(void);
 *   Inputs: void
 *   Return Value: none
 *	Function: Clears video memory
 */
-
 void
 clear(void)
 {
@@ -162,7 +275,7 @@ format_char_switch:
 * int32_t puts(int8_t* s);
 *   Inputs: int_8* s = pointer to a string of characters
 *   Return Value: Number of bytes written
-*	Function: Output a string to the console 
+*	Function: Output a string to the console
 */
 
 int32_t
@@ -181,21 +294,22 @@ puts(int8_t* s)
 * void putc(uint8_t c);
 *   Inputs: uint_8* c = character to print
 *   Return Value: void
-*	Function: Output a character to the console 
+*	Function: Output a character to the console
 */
 
 void
 putc(uint8_t c)
 {
     if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_x=0;
-    } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+      screen_y++;
+      screen_x=0;
+    }
+    else {
+      *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
+      *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+      screen_x++;
+      screen_x %= NUM_COLS;
+      screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
 }
 
@@ -475,11 +589,11 @@ memmove(void* dest, const void* src, uint32_t n)
 *   Inputs: const int8_t* s1 = first string to compare
 *			const int8_t* s2 = second string to compare
 *			uint32_t n = number of bytes to compare
-*	Return Value: A zero value indicates that the characters compared 
+*	Return Value: A zero value indicates that the characters compared
 *					in both strings form the same string.
-*				A value greater than zero indicates that the first 
-*					character that does not match has a greater value 
-*					in str1 than in str2; And a value less than zero 
+*				A value greater than zero indicates that the first
+*					character that does not match has a greater value
+*					in str1 than in str2; And a value less than zero
 *					indicates the opposite.
 *	Function: compares string 1 and string 2 for equality
 */
