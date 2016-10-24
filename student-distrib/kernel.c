@@ -11,6 +11,8 @@
 #include "rtc.h"
 #include "keyboard.h"
 #include "paging.h"
+#include "system_call.h"
+#include "filesys.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -166,15 +168,20 @@ entry (unsigned long magic, unsigned long addr)
 	i8259_init();
 	/* Init Paging */
 	paging_init();
+	// File system, USED FOR CHECKPT2
+	
 	/* Keyboard Init */
 	keyboard_init();
 	/* Init RTC */
 	rtc_init();
+
+	fs_init(((module_t*)mbi->mods_addr)->mod_start);
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("Enabling Interrupts\n");
+	printf("Enabling Gold\n");
+	printf("Test\n");
 	//printf("%d", 1/0);
 	sti();
 

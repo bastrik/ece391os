@@ -2,6 +2,7 @@
  * includes 10 system calls */
 
 #include "system_call.h"
+#include "filesys.h"
 
 int32_t halt (uint8_t status)
 {
@@ -18,7 +19,7 @@ int32_t read (int32_t fd, void* buf, int32_t nbytes)
 	if (fd < 0 || fd > 7)
 		return -1; 	// out of bounds
 
-	((fotp_t*)fd[fd].fotp)->read(fd, buf, nbytes);
+	((fotp_t*)filedesc[fd].fotp)->read(fd, buf, nbytes);
 	return 0;
 }
 
@@ -33,29 +34,29 @@ int32_t open (const uint8_t* filename)
 	dentry_t* dentry;
 	int fd_index = -1;
 
-	if (read_dentry_by_name(filename, dentry) == -1)	// if file doesn't exist
-		return -1;
+	if (read_dentry_by_name(filename, dentry) == -1)	
+		return -1;	// if file doesn't exist
 
 	for (i = 2; i < FD_LENGTH; i++)
 	{
-		if (fd[i].flags != 1)
+		if (filedesc[i].flags != 1)
 		{
 			fd_index = i;
-			fd[fd_index].flags = 1;	// use this loc
-			fd[fd_index].inode = dentry->inode;
-			fd[fd_index].file_pos = 0;
+			filedesc[fd_index].flags = 1;	// use this loc
+			filedesc[fd_index].inode = dentry->inode;
+			filedesc[fd_index].file_pos = 0;
 			switch (dentry->f_type)
 			{
 				case F_TYPE_RTC:
-					fd[fd_index].fotp = //TODO
+					filedesc[fd_index].fotp = 0;//TODO
 					break;
 				case F_TYPE_DIRECTORY:
-					fd[fd_index].fotp = //TODO
+					filedesc[fd_index].fotp = 0;//TODO
 					break;
 				case F_TYPE_REGULAR:
-					fd[fd_index].fotp = //TODO
+					filedesc[fd_index].fotp = 0;//TODO
 					break;
-				case default:
+				default:
 					break;
 			}
 			
@@ -73,10 +74,10 @@ int32_t close (int32_t fd)
 	if (fd < 2 || fd > 7)
 		return -1; 	// out of bounds
 
-	fd[fd].flags = 0;
-	fd[fd_index].inode = 0;
-	fd[fd_index].file_pos = 0;
-	fd[fd_index].fotp = NULL;
+	filedesc[fd].flags = 0;
+	filedesc[fd].inode = 0;
+	filedesc[fd].file_pos = 0;
+	filedesc[fd].fotp = NULL;
 
 	return 0;
 }

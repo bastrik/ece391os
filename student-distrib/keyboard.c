@@ -7,6 +7,8 @@
 #include "i8259.h"
 #include "lib.h"
 #include "keyboard.h"
+#include "filesys.h"
+#include "system_call.h"
 
 /* the number of characters on a keyboard */
 #define KEY_CHAR_NUM 64
@@ -84,6 +86,12 @@ void keyboard_handler() {
   }while(1);
 
   putc(keyboard_char_norm[scancode]);
+
+  switch (keyboard_char_norm[scancode])
+  {
+    case '1':
+      list_files ();
+  }
 
   send_eoi(KEYBOARD_IRQ_NUM);
   sti();

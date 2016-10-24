@@ -5,7 +5,7 @@
 
 #include "types.h"
 
-#define FD_LENGTH = 8
+#define FD_LENGTH 8
 
 int32_t halt (uint8_t status);
 
