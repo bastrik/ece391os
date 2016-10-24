@@ -7,7 +7,11 @@
 #include "types.h"
 #include "i8259.h"
 #include "lib.h"
+#include "rtc.h"
 //#include "system_calls.h"
+static uint32_t rtc_freq;
+static uint8_t test_case_buf[KEY_BUFF_LEN];
+static uint32_t read_idx;
 
 /* string buffer to be displayed on the screen */
 static uint8_t key_buffer[KEY_BUFF_LEN];
@@ -76,6 +80,10 @@ void keyboard_init(void) {
   }
   key_buffer_idx = 0;
   enter_flag = 0;
+
+  /* this if for the TEST CASE 3 for DEMO of MP3.2  */
+  rtc_freq = 2;
+  read_idx = 0;
 }
 
 /*
@@ -142,13 +150,7 @@ void keyboard_handler() {
       break;
   }
 
-
-
-  /* system call check */
-  //if (scancode < 0x80)
-  //  putc(keyboard_char_norm[scancode]);
   send_eoi(KEYBOARD_IRQ_NUM);
-
   /* End of the critical section */
   sti();
 }
@@ -187,6 +189,53 @@ void key_to_buffer(uint8_t scancode) {
   /* CTRL+L, clear the screen and put the cursor at the top */
   if (key_flag[CTRL] == PRESS) {
     if (key == 'l' || key == 'L') {
+      clear();
+      set_cursor(0, 0);
+      return;
+    }
+
+    /* TEST CASES for DEMO of MP3.2 */
+    // CTRL+1: List of all files
+    // if (key == '1') {
+    //   clear();
+    //   set_cursor(0, 0);
+    //   //test_case_1();
+    //   return;
+    // }
+    // CTRL+2: Read by file name
+    if (key == '2') {
+      clear();
+      set_cursor(0, 0);
+      // invoke user to type in the file name then press enter
+      printf("file name: \n");
+      terminal_read(1, test_case_buf, KEY_BUFF_LEN);
+      read_file_name(test_case_buf);
+      //test_case_2();
+      return;
+    }
+    // CTRL+3: Read by file index
+    if (key == '3') {
+      clear();
+      set_cursor(0, 0);
+      read_file_index(read_idx);
+      read_idx++;
+      //test_case_3(file_index);
+      //file_index++;
+      return;
+    }
+    // CTRL+4: Start RTC test
+    if (key == '4') {
+      clear();
+      set_cursor(0, 0);
+      test_rtc(rtc_freq, 1);
+      rtc_freq *= 2;
+      if (rtc_freq > 1024)
+        rtc_freq = 2;
+      return;
+    }
+    // CTRL+5: Stop RTC test
+    if (key == '5') {
+      test_rtc(rtc_freq, 0);
       clear();
       set_cursor(0, 0);
       return;
@@ -243,7 +292,7 @@ void backspace_hander() {
 /*
  * int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes)
  *   DESCRIPTION: read system call for terminal driver
- *   INPUTS: fd -- file descriptor
+ *   INPUTS: fd -- file descriptor number
  *           buf -- buffer to fill
  *           nbytes -- the number of bytes to read
  *   OUTPUTS: none
@@ -251,20 +300,20 @@ void backspace_hander() {
  *   SIDE EFFECTS: clears the key_buffer
  */
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
-  sti();
+  //sti();
 
   /* wait for the ENTER key to be pressed */
   while(enter_flag == 0)
-    enter_flag = 0;
+    //enter_flag = 0;
 
   int i, retval;
 
-  int8_t* read_buffer = (int8_t *)buf;
- 
-  /* fill the buffer */
+  uint8_t* read_buffer = (uint8_t *)buf;
+
+  /* fill the given buffer */
   for (i = 0; (i < nbytes-1) && (i < KEY_BUFF_LEN); i++) {
 		read_buffer[i] = key_buffer[i];
-    if (key_buffer[i] == '\0')
+    if (key_buffer[i] == '\n')
       break;
   }
 
@@ -274,6 +323,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
   for (i = 0; i < KEY_BUFF_LEN; i++) {
     key_buffer[i] = '\0';
   }
+  enter_flag = 0;
 
   return retval;
 }
@@ -281,7 +331,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
 /*
  * int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes)
  *   DESCRIPTION: write system call for terminal driver
- *   INPUTS: fd -- file descriptor
+ *   INPUTS: fd -- file descriptor number
  *           buf -- buffer to write with
  *           nbytes -- the number of bytes to display
  *   OUTPUTS: data in the given buf displayed
