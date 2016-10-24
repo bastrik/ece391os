@@ -72,7 +72,7 @@ rtc_close()
 /*
  * RTC_read
  * DESCRIPTION: rtc_read function, which would set the rtc_interrupt_flag and wait till the rtc_handler clear the flag
- * Input: None
+ * Input: None()
  * Ouput: None
  * RETURN: None
  * Side_Effect: none
@@ -80,7 +80,7 @@ rtc_close()
 uint32_t
 rtc_read()
 {
-	sti()
+	sti();
 	// set the rtc flag to 1
 	rtc_interrupt_flag = 1;
 
