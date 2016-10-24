@@ -11,6 +11,7 @@
 //#define RATE_LIMIT 0x0F
 #define RTC_INDEX_PORT 0x70
 #define RTC_RW_PORT 0x71
+#define RTC_IDT_VEC 0x28
 
 #define	RTC_STATUS_REGISTER_A 0x8A
 #define RTC_STATUS_REGISTER_B 0x8B

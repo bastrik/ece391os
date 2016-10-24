@@ -13,6 +13,7 @@
 
  #define KEYBOARD_DATA_PORT 0x60
  #define KEYBOARD_IRQ_NUM   1
+ #define KEYBOARD_IDT_VEC   0x21
 
  extern void keyboard_init();
  extern void keyboard_handler();
