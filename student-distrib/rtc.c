@@ -27,7 +27,7 @@ rtc_init() {
 	outb(RTC_STATUS_REGISTER_A, RTC_INDEX_PORT); // set index to register A, disable NMI
 	char prevA=inb(RTC_RW_PORT); // get initial value of register A
 	outb(RTC_STATUS_REGISTER_A, RTC_INDEX_PORT); // reset index to A
-	outb((prevA & 0xF0) | rate, RTC_RW_PORT); //write only our rate to A. Rate is the bottom 4 bits.
+	outb((prevA & UPPER_FOURBIT_MASK) | rate, RTC_RW_PORT); //write only our rate to A. Rate is the bottom 4 bits.
 	/* enable able_irq */
 	enable_irq(IRQ2);
 	enable_irq(IRQ8);
