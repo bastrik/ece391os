@@ -180,9 +180,7 @@ uint32_t rtc_write(int32_t fd, const uint32_t* buf, int32_t nbyte)
 
 void test_rtc(int freq, int flag)
 {
-	int j;
 	rtc_write(1, (uint32_t *) &freq, 4);
-	printf("current frequency :: %d\n",i);
 	while(flag)
 	{
 		 printf("1");
