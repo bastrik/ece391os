@@ -6,15 +6,15 @@
 #include "lib.h"
 #include "i8259.h"
 
+#define IRQ8 0x08
+#define IRQ2 0x02
+//#define RATE_LIMIT 0x0F
 #define RTC_INDEX_PORT 0x70
 #define RTC_RW_PORT 0x71
 
 #define	RTC_STATUS_REGISTER_A 0x8A
 #define RTC_STATUS_REGISTER_B 0x8B
 #define RTC_STATUS_REGISTER_C 0x0C
-
-#define ORED_MASK 0x40
-#define UPPER_FOURBIT_MASK 0xF0
 
 #define HZ2_RATE 0x0F
 #define HZ4_RATE 0x0E
@@ -28,14 +28,12 @@
 #define HZ1024_RATE 0x06
 #define MAX_FREQ 1024
 
-
 extern void rtc_init();
 extern void rtc_handler();
 
-extern int32_t rtc_open(const uint8_t* filename);
-extern int32_t rtc_close(int32_t fd);
-extern int32_t rtc_read(int32_t fd, uint8_t* buf, int32_t nbytes);
-extern int32_t rtc_write(int32_t fd, const uint8_t* buf, int32_t nbyte);
+extern uint32_t rtc_open();
+extern uint32_t rtc_close();
+extern uint32_t rtc_read();
+extern uint32_t rtc_write(int32_t fd, const uint32_t* buf, int32_t nbyte);
 
 #endif /* _RTC_H */
-
