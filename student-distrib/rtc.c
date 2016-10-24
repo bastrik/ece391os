@@ -80,6 +80,7 @@ rtc_close()
 uint32_t
 rtc_read()
 {
+	sti()
 	// set the rtc flag to 1
 	rtc_interrupt_flag = 1;
 
@@ -204,7 +205,10 @@ void rtc_handler() {
 	/* interrupts and register C */
 	outb(RTC_STATUS_REGISTER_C, RTC_INDEX_PORT);
 	inb(RTC_RW_PORT);
+	//clear flags
+	rtc_interrupt_flag = 0;
 	
+
 	 //test_interrupts();
 	
 	send_eoi(IRQ8);
