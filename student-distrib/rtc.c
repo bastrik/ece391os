@@ -138,7 +138,7 @@ uint32_t rtc_write(int32_t fd, const uint32_t* buf, int32_t nbyte)
 		case 16:
 			rate = HZ16_RATE;
 			break;
-		// 32 Hz
+-		// 32 Hz
 		case 32:
 			rate = HZ32_RATE;
 			break;
@@ -178,16 +178,15 @@ uint32_t rtc_write(int32_t fd, const uint32_t* buf, int32_t nbyte)
 
 }
 
-void test_rtc(int freq)
+void test_rtc(int freq, int flag)
 {
-	 int j;
+	int j;
 	rtc_write(1, (uint32_t *) &freq, 4);
 	printf("current frequency :: %d\n",i);
-	for (j=0; j < 15; j++)
-		 {
-			 printf("1");
-			 rtc_read();
-		 }
+	while(flag)
+	{
+		 printf("1");
+		 rtc_read();
 	}
 }
 
