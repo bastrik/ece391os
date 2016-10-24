@@ -116,9 +116,9 @@ uint32_t rtc_write(int32_t fd, const uint32_t* buf, int32_t nbyte)
 	frequency = *buf;
 
 	/* max frequency is 1024 hz */
-	if (frequency > MAX_FREQ) {
-		return -1;
-	}
+	//if (frequency > MAX_FREQ) {
+	//	return -1;
+	//}
 
 	/* set the rate at different frequency */
 	switch (frequency) {
@@ -178,10 +178,10 @@ uint32_t rtc_write(int32_t fd, const uint32_t* buf, int32_t nbyte)
 
 }
 
-void test_rtc(int i)
+void test_rtc(int freq)
 {
 	 int j;
-	rtc_write(1, (uint32_t *) &i, 4);
+	rtc_write(1, (uint32_t *) &freq, 4);
 	printf("current frequency :: %d\n",i);
 	for (j=0; j < 15; j++)
 		 {
