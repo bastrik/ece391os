@@ -170,7 +170,7 @@ void init_idt(){
  	SET_IDT_ENTRY(idt[RTC_IDT_VEC], (uint32_t)&rtc_handler);
 
  	/* Set interrupt for Keyboard */
- 	SET_IDT_ENTRY(idt[KEYBOARD_IDT_VEC], (uint32_t)&keyboard_handler);
+ 	SET_IDT_ENTRY(idt[0x21], (uint32_t)&keyboard_handler);
 
 
  }
