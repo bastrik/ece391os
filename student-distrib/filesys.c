@@ -34,10 +34,10 @@ void fs_init(uint32_t start_addr)
  	boot_block = (boot_block_t*) start_addr;
 
  	/* assign the start address of the first block inode */
- 	inode_start = (inode_t*) (start_addr + BLOCK_SIZE);
+ 	inode_start = (inode_t*) (boot_block + 1);
 
 	/* assign the start address of the first data block */
- 	data_block_addr = (uint32_t) inode_start + (boot_block -> sys_stat).num_inode * BLOCK_SIZE;
+ 	data_block_addr = ((uint32_t) inode_start) + (boot_block -> sys_stat).num_inode * BLOCK_SIZE;
 
  	// for checkpoint 2 we want to init our file descriptor
  	filedesc[0].flags = 1;	// stdin
@@ -54,7 +54,7 @@ void fs_init(uint32_t start_addr)
  	dir_fotp.write = (uint32_t)&(dir_write);
 
  	is_Init = 1;
- 	printf("fs init\n");
+ 	//printf("fs init\n");
 }
 
 
@@ -73,14 +73,13 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 {
 	int i;
 	int32_t found_file = -1;
-	dentry_t* dentries = (dentry_t*) boot_block + SYS_STAT_SIZE;
 	for (i = 0; i < (boot_block -> sys_stat).num_dentry; ++i)
 	{
-		if (strncmp((int8_t*) dentries[i].f_name, (int8_t*) fname, FILE_NAME_MAX_L))
+		if (!strncmp((int8_t*) (boot_block -> dentry)[i].f_name, (int8_t*) fname, FILE_NAME_MAX_L))
 		{
-			strncpy((int8_t*)dentry -> f_name, (int8_t*)fname, FILE_NAME_MAX_L);
-			dentry -> f_type = dentries[i].f_type;
-			dentry -> inode = dentries[i].inode;
+			strncpy((int8_t*)dentry -> f_name, (int8_t*)(boot_block -> dentry)[i].f_name, FILE_NAME_MAX_L);
+			dentry -> f_type = (boot_block -> dentry)[i].f_type;
+			dentry -> inode = (boot_block -> dentry)[i].inode;
 			found_file = 0;
 			break;
 		}
@@ -101,11 +100,10 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
  {
  	if (index >= (boot_block -> sys_stat).num_dentry) return -1; /* If the index is out of bound, return -1*/
  	if (index < 0) return -1; /* If the index is less than 0, return -1*/
- 	dentry_t* dentries = boot_block + SYS_STAT_SIZE;
 
- 	strncpy((int8_t*)dentry -> f_name, (int8_t*)dentries[index].f_name, FILE_NAME_MAX_L);
-	dentry -> f_type = dentries[index].f_type;
-	dentry -> inode = dentries[index].inode;
+ 	strncpy((int8_t*)dentry -> f_name, (int8_t*)(boot_block -> dentry)[index].f_name, FILE_NAME_MAX_L);
+	dentry -> f_type = (boot_block -> dentry)[index].f_type;
+	dentry -> inode = (boot_block -> dentry)[index].inode;
  	
  	return 0;
  }
@@ -143,6 +141,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 
 	while(remain_length > 0)
 	{
+		// if we can finish copying in this data block
 		if (start_offset + remain_length < BLOCK_SIZE)
 		{
 			memcpy((void*) (buf + length - remain_length), (void *) start_addr, remain_length);
@@ -160,8 +159,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 		}
 	}
 
-
-	return -1; 	// should not reach here
+	return 0; 	// should not reach here
 }
 
 
@@ -211,9 +209,8 @@ int32_t dir_write ()
 
 //TODO: test case
 // 1. list files (ctrl + 1)
-void list_files ()
+void list_files()
 {
-	clear(); 	// clear screen first
 	dentry_t dentry;
 	uint8_t file_name[32];
 	uint32_t file_type;
@@ -223,20 +220,21 @@ void list_files ()
 
 	if (is_Init == 0)
 	{
-		printf ("Init failed");
+		printf ("Init failed\n");
 		return;
 	}
 
-	for (i = 0; i < (boot_block->sys_stat).num_dentry; i++)
+
+	for (i = 0; i < (boot_block->sys_stat).num_dentry; ++i)
 	{
 		dentry = boot_block->dentry[i];
 		strncpy((int8_t*)file_name, (int8_t*)dentry.f_name, FILE_NAME_MAX_L);
 		file_type = dentry.f_type;
 
 		if (file_type == 2)
-		{
-			inode_ptr = (inode_t*)(dentry.inode * BLOCK_SIZE + inode_start);
-			file_size = inode_ptr->length;
+		{			
+			inode_ptr = dentry.inode + inode_start;
+			file_size =  inode_ptr -> length;
 		} else
 			file_size = 0;
 
@@ -248,23 +246,69 @@ void list_files ()
 // 2. read file by name (ctrl + 2)
 void read_file_name (const uint8_t* filename)
 {
+	int i;
+	dentry_t dentry;
+	inode_t* inode_ptr;
+	uint8_t file_name[FILE_NAME_MAX_L];
 
+	if (read_dentry_by_name(filename, &dentry) == -1)
+	{
+		printf("File Not Found!");
+		return;
+	}
+
+	if (dentry.f_type == 2)
+	{
+		inode_ptr = dentry.inode + inode_start;
+		uint32_t size_lim = (BUF_SIZE > inode_ptr -> length) ? inode_ptr -> length : BUF_SIZE;
+		uint8_t buf[size_lim];
+
+		if (read_data(dentry.inode, inode_ptr -> length - size_lim, (void*) buf, size_lim) == -1)
+		{
+			printf ("read error");
+			return;
+		}
+
+		for (i = 0; i < size_lim; ++i)
+		printf("%c", buf[i]);
+	}
+	
+	strncpy((int8_t*)file_name, (int8_t*)dentry.f_name, FILE_NAME_MAX_L);
+	file_name[FILE_NAME_MAX_L - 1] = '\0';
+	printf("\nFile: %s\n", file_name);
 }
 
 // 3. read file by index (ctrl + 3)
-void read_file_index (uint32_t index)
+void read_file_index (uint32_t* index)
 {
+	int i;
+	dentry_t dentry;
+	inode_t* inode_ptr;
+	uint8_t file_name[FILE_NAME_MAX_L];
 
+	/* If index is out of bound, reset it to 0 */
+	if (*index > (boot_block->sys_stat).num_dentry) *index = 0;
+	read_dentry_by_index(*index, &dentry);
+
+	if (dentry.f_type == 2)
+	{
+		inode_ptr = dentry.inode + inode_start;
+		uint32_t size_lim = (BUF_SIZE > inode_ptr -> length) ? inode_ptr -> length : BUF_SIZE;
+		uint8_t buf[size_lim];
+
+		if (read_data(dentry.inode, inode_ptr -> length - size_lim, (void*) buf, size_lim) == -1)
+		{
+			printf ("read error");
+			return;
+		}
+
+		for (i = 0; i < size_lim; ++i) printf("%c", buf[i]);
+	}
+	
+	strncpy((int8_t*)file_name, (int8_t*)dentry.f_name, FILE_NAME_MAX_L);
+
+	file_name[FILE_NAME_MAX_L - 1] = '\0';
+	printf("\nFile: %s\n", file_name);
+	
 }
 
-// 4. start rtc test, press to change frequency (ctrl + 4)
-void start_rtc ()
-{
-
-}
-
-// 5. stop rtc test (ctrl + 5)
-void stop_rtc ()
-{
-
-}

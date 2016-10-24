@@ -12,10 +12,10 @@
 
 /* Size of Blocks */
 #define BLOCK_SIZE 			4096
-#define SYS_STAT_SIZE 		512
-#define DENTRY_SIZE 		512
+#define SYS_STAT_SIZE 		64
 
-#define FILE_NAME_MAX_L		32
+#define FILE_NAME_MAX_L		33				// We manually write '\0' to the end, s.t. limit name length to be 32
+#define BUF_SIZE			1600
 
 
 
@@ -41,7 +41,7 @@ typedef struct {
 
 /* System Statistics struct 	*
  *								*/
-typedef struct sys_stat
+typedef struct
 {
 	uint32_t num_dentry;
 	uint32_t num_inode;
@@ -51,7 +51,7 @@ typedef struct sys_stat
 
 /* The index node struct 		*
  *								*/
-typedef struct inode
+typedef struct
 {
 	uint32_t length;
 	uint32_t data_block_index[1023];
@@ -59,7 +59,7 @@ typedef struct inode
 
 /* The 64B directory entry struct 	*
  *									*/
-typedef struct dentry
+typedef struct
 {
 	uint8_t f_name[32];
 	uint32_t f_type;
@@ -69,7 +69,7 @@ typedef struct dentry
 
 /* Boot Block struct 				*
  *									*/
-typedef struct boot_block
+typedef struct
 {
 	sys_stat_t sys_stat;
 	dentry_t dentry[63];

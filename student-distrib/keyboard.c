@@ -9,7 +9,10 @@
 #include "lib.h"
 #include "filesys.h"
 #include "system_call.h"
-//#include "system_calls.h"
+
+static uint32_t rtc_freq;
+static uint8_t test_case_buf[KEY_BUFF_LEN];
+static uint32_t read_idx;
 
 /* string buffer to be displayed on the screen */
 static uint8_t key_buffer[KEY_BUFF_LEN];
@@ -78,6 +81,10 @@ void keyboard_init(void) {
   }
   key_buffer_idx = 0;
   enter_flag = 0;
+
+  /* this if for the TEST CASE 3 for DEMO of MP3.2  */
+  rtc_freq = 2;
+  read_idx = 0;
 }
 
 /*
@@ -195,7 +202,53 @@ void key_to_buffer(uint8_t scancode) {
     }
   }
 
-  /* append to the key buffer and display the key on the screen */
+  /* CTRL+1, clear the screen and put the cursor at the top */
+  if (key_flag[CTRL] == PRESS) {
+    if (key == '1') {
+      clear();
+      set_cursor(0, 0);
+      list_files();
+      return;
+    }
+  
+    // CTRL+2: Read by file name
+    if (key == '2') {
+      clear();
+      set_cursor(0, 0);
+      // invoke user to type in the file name then press enter
+      printf("file name: \n");
+      terminal_read(1, test_case_buf, KEY_BUFF_LEN);
+      read_file_name(test_case_buf);
+      // read_file_name("frame0.txt");
+      return;
+    }
+    // CTRL+3: Read by file index
+    if (key == '3') {
+      clear();
+      set_cursor(0, 0);
+      read_file_index(&read_idx);
+      read_idx++;
+      return;
+    }
+    // CTRL+4: Start RTC test
+    if (key == '4') {
+      clear();
+      set_cursor(0, 0);
+      //test_rtc(rtc_freq, 1);
+      rtc_freq *= 2;
+      if (rtc_freq > 1024)
+        rtc_freq = 2;
+      return;
+    }
+    // CTRL+5: Stop RTC test
+    if (key == '5') {
+      //test_rtc(rtc_freq, 0);
+      clear();
+      set_cursor(0, 0);
+      return;
+    }
+  }  
+/* append to the key buffer and display the key on the screen */
   if (key_buffer_idx < KEY_BUFF_LEN) {
     key_buffer_idx++;
 		key_buffer[key_buffer_idx] = key;
@@ -253,7 +306,6 @@ void backspace_hander() {
  *   SIDE EFFECTS: clears the key_buffer
  */
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
-  sti();
 
   /* wait for the ENTER key to be pressed */
   while(enter_flag == 0)
