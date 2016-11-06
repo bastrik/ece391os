@@ -12,9 +12,11 @@
 
 // FOR TEST CASES for DEMO of MP3.2
 static uint32_t rtc_freq;
-static int8_t test_case_buf[KEY_BUFF_LEN];
+static uint8_t test_case_buf[KEY_BUFF_LEN];
 static uint32_t read_idx;
-volatile uint8_t enter_flag;
+static int8_t test_flag;
+
+
 
 /* string buffer to be displayed on the screen */
 static uint8_t key_buffer[KEY_BUFF_LEN];
@@ -23,6 +25,7 @@ static uint32_t key_buffer_idx;
 /* key flags for shift, capslock, ctrl respectively */
 static uint8_t key_flag[KEY_FLAG_NUM];
 
+volatile uint8_t enter_flag;
 
 /* the fowlloing key mapping corresponds to the scan code set 1
  * the keys that this driver doesn't support is set as NULL ('\0')
@@ -82,14 +85,15 @@ void keyboard_init(void) {
     key_buffer[i] = '\0';
   }
   key_buffer_idx = 0;
-  enter_flag = 0;
+  enter_flag = RELEASE;
 
   // FOR TEST CASES for DEMO of MP3.2
   rtc_freq = 2;
   read_idx = 0;
   for (i = 0; i < KEY_BUFF_LEN; i++) {
-	test_case_buf[i] = '\n';
+	   test_case_buf[i] = '\0';
   }
+  test_flag = 0;
 }
 
 /*
@@ -124,9 +128,15 @@ void keyboard_handler() {
 
   /* handles the obtained scan code */
   switch (scancode) {
-    case ENTER:
-      enter_handler();
-      break;
+    case ENTER: {
+        if (test_flag == 0) {
+          enter_handler();
+        }
+        else {
+          keyboard_test();
+        }
+        break;
+      }
     case CAPSLOCK:
       key_flag[CAPS] = PRESS - key_flag[CAPS];
       break;
@@ -211,35 +221,25 @@ void key_to_buffer(uint8_t scancode) {
   /* CTRL+1, clear the screen and put the cursor at the top */
   if (key_flag[CTRL] == PRESS) {
     if (key == '1') {
+      test_flag = 0; // reset the test flag for ctrl 2 function
       clear();
       set_cursor(0, 0);
       list_files();
       return;
     }
-  
-    // CTRL+2: Read by file name/////////////////////////////////////////////////////////////////////////////////////////
+
+    // CTRL+2: Read by file name////////////////////////////////////////////////
     if (key == '2') {
       clear();
       set_cursor(0, 0);
-		
-	  
-      // invoke user to type in the file name then press enter
-      //printf("file name: ");
-      //int buf_len = terminal_read(1, test_case_buf, KEY_BUFF_LEN);
-	  int i;
-	  
-	  //printf("%s", test_case_buf);
-	  
-	  // fill the unused space with '\0'
-	  //for (i = buf_len; i < KEY_BUFF_LEN; i++) {
-	//	  test_case_buf[i] = '\0'; 
-	  //}
-      //read_file_name(test_case_buf);
-      read_file_name("frame0.txt");
+      test_flag = 1; //indicate that the test function ctrl+2 started
+      /* invoke user to type in the file name then press enter */
+      printf("file name: ");
       return;
     }
-    // CTRL+3: Read by file index//////////////////////////////////////////////////////////////////
+    // CTRL+3: Read by file index//////////////////////////////////////////////
     if (key == '3') {
+      test_flag = 0; // reset the test flag for ctrl 2 function
       clear();
       set_cursor(0, 0);
       read_file_index(&read_idx);
@@ -248,6 +248,7 @@ void key_to_buffer(uint8_t scancode) {
     }
     // CTRL+4: Start RTC test
     if (key == '4') {
+      test_flag = 0; // reset the test flag for ctrl 2 function
       clear();
       set_cursor(0, 0);
 	  //test_rtc();
@@ -259,21 +260,49 @@ void key_to_buffer(uint8_t scancode) {
     }
     // CTRL+5: Stop RTC test
     if (key == '5') {
+      test_flag = 0; // reset the test flag for ctrl 2 function
      // test_rtc(rtc_freq, 0);
       clear();
       set_cursor(0, 0);
       return;
     }
-  }  
+  }
 /* append to the key buffer and display the key on the screen */
   if (key_buffer_idx < KEY_BUFF_LEN) {
-    key_buffer_idx++;
 		key_buffer[key_buffer_idx] = key;
+    key_buffer_idx++;
     putc(key);
 	}
 
   /* nothing changed */
   return;
+}
+
+
+/*
+ *  TEST functiong for CTRL+2 function
+ */
+void keyboard_test() {
+  /* put the typed string into a string buffer */
+  int buf_len = terminal_read(1, test_case_buf, KEY_BUFF_LEN);
+  // check if nothing has been typed
+  if (buf_len == 0) {
+    return;
+  }
+
+  // It's time to print the file content, clear the screen
+  clear();
+  set_cursor(0, 0);
+  read_file_name(test_case_buf);
+  //read_file_name("frame0.txt");
+
+  // printing is done, clear the test_case_buf
+  int i;
+  for (i = 0; i < KEY_BUFF_LEN; i++) {
+      test_case_buf[i] = '\0';
+  }
+  /* task is done, invoke user again to type in the next file name */
+  printf("\nFile name: ");
 }
 
 /*
@@ -324,29 +353,24 @@ void backspace_hander() {
  *   SIDE EFFECTS: clears the key_buffer
  */
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
-	//sti();
-//  /* wait for the ENTER key to be pressed */
-  while(enter_flag == 0); 
-  enter_flag = 0; 
-	  //printf("%d", enter_flag);
-
- 
   int i, retval;
-
-  int8_t* read_buffer = (int8_t *)buf;
- 
   /* fill the given buffer */
-  for (i = 0; (i < nbytes-1) && (i < KEY_BUFF_LEN); i++) {
-		read_buffer[i] = key_buffer[i];
+  for (i = 0; i < nbytes; i++) {
+    if (key_buffer[i] == '\0') {
+      break;
+    }
+		((uint8_t *)buf)[i] = key_buffer[i];
   }
-
+  /* save the return value -- the number of bytes read */
   retval = i;
-
   /* clear the key_buffer */
   for (i = 0; i < KEY_BUFF_LEN; i++) {
     key_buffer[i] = '\0';
   }
-  printf("end of term read");
+  /* reset the key buffer index */
+  key_buffer_idx = 0;
+
+
   return retval;
 }
 

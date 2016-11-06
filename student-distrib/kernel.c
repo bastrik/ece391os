@@ -136,19 +136,19 @@ entry (unsigned long magic, unsigned long addr)
 	/* Init the idt */
 	init_idt();
 	asm ("lidt idt_desc_ptr");
-	
+
 	int i;
 	for (i=0; i<16; i++)
 	{
 		disable_irq(i);
 	}
-	
+
 	/* Init the PIC */
 	i8259_init();
 	/* Init Paging */
 	paging_init();
 	// File system, USED FOR CHECKPT2
-	
+
 	/* Keyboard Init */
 	keyboard_init();
 	/* Init RTC */
@@ -160,21 +160,21 @@ entry (unsigned long magic, unsigned long addr)
 	 * without showing you any output */
 	printf("Enabling Interrupts\n");
 	//printf("%d", 1/0);
-	
-	int j;
-	clear();
-	printf("TEST FOR RTC\n");
-	for (i = 2; i <=1024; i*=2) {
-		rtc_write(1, (uint32_t *) &i, 4);
-		//printf")
-		printf("Current frequency:: %d \n", i);
-		for (j=0;j<10;j++){
-			printf("a"); 
-			rtc_read();
-		}
-		printf("\n");
-	}
-	
+
+	// int j;
+	// clear();
+	// printf("TEST FOR RTC\n");
+	// for (i = 2; i <=1024; i*=2) {
+	// 	rtc_write(1, (uint32_t *) &i, 4);
+	// 	//printf")
+	// 	printf("Current frequency:: %d \n", i);
+	// 	for (j=0;j<10;j++){
+	// 		printf("a");
+	// 		rtc_read();
+	// 	}
+	// 	printf("\n");
+	// }
+
 	sti();
 	/* Execute the first program (`shell') ... */
 	/* Spin (nicely, so we don't chew up cycles) */
