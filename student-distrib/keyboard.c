@@ -7,11 +7,14 @@
 #include "types.h"
 #include "i8259.h"
 #include "lib.h"
-#include "rtc.h"
-//#include "system_calls.h"
+#include "filesys.h"
+#include "system_call.h"
+
+// FOR TEST CASES for DEMO of MP3.2
 static uint32_t rtc_freq;
-static uint8_t test_case_buf[KEY_BUFF_LEN];
+static int8_t test_case_buf[KEY_BUFF_LEN];
 static uint32_t read_idx;
+volatile uint8_t enter_flag;
 
 /* string buffer to be displayed on the screen */
 static uint8_t key_buffer[KEY_BUFF_LEN];
@@ -19,7 +22,7 @@ static uint32_t key_buffer_idx;
 
 /* key flags for shift, capslock, ctrl respectively */
 static uint8_t key_flag[KEY_FLAG_NUM];
-volatile uint8_t enter_flag;
+
 
 /* the fowlloing key mapping corresponds to the scan code set 1
  * the keys that this driver doesn't support is set as NULL ('\0')
@@ -81,9 +84,12 @@ void keyboard_init(void) {
   key_buffer_idx = 0;
   enter_flag = 0;
 
-  /* this if for the TEST CASE 3 for DEMO of MP3.2  */
+  // FOR TEST CASES for DEMO of MP3.2
   rtc_freq = 2;
   read_idx = 0;
+  for (i = 0; i < KEY_BUFF_LEN; i++) {
+	test_case_buf[i] = '\n';
+  }
 }
 
 /*
@@ -100,7 +106,7 @@ void keyboard_init(void) {
  */
 void keyboard_handler() {
   /* Beginning of a critical section  */
-  cli();
+  //cli();
   uint8_t scancode = 0;
   //printf("in handler");
   /* obtaining scan code from keyboard
@@ -150,9 +156,15 @@ void keyboard_handler() {
       break;
   }
 
-  send_eoi(KEYBOARD_IRQ_NUM);
+
+
+  /* system call check */
+  //if (scancode < 0x80)
+  //  putc(keyboard_char_norm[scancode]);
+    send_eoi(KEYBOARD_IRQ_NUM);
+
   /* End of the critical section */
-  sti();
+  //sti();
 }
 
 /*
@@ -193,56 +205,67 @@ void key_to_buffer(uint8_t scancode) {
       set_cursor(0, 0);
       return;
     }
+  }
 
-    /* TEST CASES for DEMO of MP3.2 */
-    // CTRL+1: List of all files
-    // if (key == '1') {
-    //   clear();
-    //   set_cursor(0, 0);
-    //   //test_case_1();
-    //   return;
-    // }
-    // CTRL+2: Read by file name
+	// TEST CASES for DEMO of MP3.2
+  /* CTRL+1, clear the screen and put the cursor at the top */
+  if (key_flag[CTRL] == PRESS) {
+    if (key == '1') {
+      clear();
+      set_cursor(0, 0);
+      list_files();
+      return;
+    }
+  
+    // CTRL+2: Read by file name/////////////////////////////////////////////////////////////////////////////////////////
     if (key == '2') {
       clear();
       set_cursor(0, 0);
+		
+	  
       // invoke user to type in the file name then press enter
-      printf("file name: \n");
-      terminal_read(1, test_case_buf, KEY_BUFF_LEN);
-      read_file_name(test_case_buf);
-      //test_case_2();
+      //printf("file name: ");
+      //int buf_len = terminal_read(1, test_case_buf, KEY_BUFF_LEN);
+	  int i;
+	  
+	  //printf("%s", test_case_buf);
+	  
+	  // fill the unused space with '\0'
+	  //for (i = buf_len; i < KEY_BUFF_LEN; i++) {
+	//	  test_case_buf[i] = '\0'; 
+	  //}
+      //read_file_name(test_case_buf);
+      read_file_name("frame0.txt");
       return;
     }
-    // CTRL+3: Read by file index
+    // CTRL+3: Read by file index//////////////////////////////////////////////////////////////////
     if (key == '3') {
       clear();
       set_cursor(0, 0);
-      read_file_index(read_idx);
+      read_file_index(&read_idx);
       read_idx++;
-      //test_case_3(file_index);
-      //file_index++;
       return;
     }
     // CTRL+4: Start RTC test
     if (key == '4') {
       clear();
       set_cursor(0, 0);
-      test_rtc(rtc_freq, 1);
-      rtc_freq *= 2;
-      if (rtc_freq > 1024)
-        rtc_freq = 2;
+	  //test_rtc();
+     // test_rtc(rtc_freq, 1);
+    //  rtc_freq *= 2;
+   //   if (rtc_freq > 1024)
+   //     rtc_freq = 2;
       return;
     }
     // CTRL+5: Stop RTC test
     if (key == '5') {
-      test_rtc(rtc_freq, 0);
+     // test_rtc(rtc_freq, 0);
       clear();
       set_cursor(0, 0);
       return;
     }
-  }
-
-  /* append to the key buffer and display the key on the screen */
+  }  
+/* append to the key buffer and display the key on the screen */
   if (key_buffer_idx < KEY_BUFF_LEN) {
     key_buffer_idx++;
 		key_buffer[key_buffer_idx] = key;
@@ -264,9 +287,10 @@ void key_to_buffer(uint8_t scancode) {
  *                 Moves the screen vertically if neccessary
  */
 void enter_handler() {
-  key_buffer[key_buffer_idx++] = '\n';
+  key_buffer[++key_buffer_idx] = '\n';
   set_cursor_enter();
   enter_flag = 1;
+  //printf("enter pressed!");
   return;
 }
 
@@ -292,7 +316,7 @@ void backspace_hander() {
 /*
  * int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes)
  *   DESCRIPTION: read system call for terminal driver
- *   INPUTS: fd -- file descriptor number
+ *   INPUTS: fd -- file descriptor index
  *           buf -- buffer to fill
  *           nbytes -- the number of bytes to read
  *   OUTPUTS: none
@@ -300,21 +324,20 @@ void backspace_hander() {
  *   SIDE EFFECTS: clears the key_buffer
  */
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
-  //sti();
+	//sti();
+//  /* wait for the ENTER key to be pressed */
+  while(enter_flag == 0); 
+  enter_flag = 0; 
+	  //printf("%d", enter_flag);
 
-  /* wait for the ENTER key to be pressed */
-  while(enter_flag == 0)
-    //enter_flag = 0;
-
+ 
   int i, retval;
 
-  uint8_t* read_buffer = (uint8_t *)buf;
-
+  int8_t* read_buffer = (int8_t *)buf;
+ 
   /* fill the given buffer */
   for (i = 0; (i < nbytes-1) && (i < KEY_BUFF_LEN); i++) {
 		read_buffer[i] = key_buffer[i];
-    if (key_buffer[i] == '\n')
-      break;
   }
 
   retval = i;
@@ -323,15 +346,14 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
   for (i = 0; i < KEY_BUFF_LEN; i++) {
     key_buffer[i] = '\0';
   }
-  enter_flag = 0;
-
+  printf("end of term read");
   return retval;
 }
 
 /*
  * int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes)
  *   DESCRIPTION: write system call for terminal driver
- *   INPUTS: fd -- file descriptor number
+ *   INPUTS: fd -- file descriptor
  *           buf -- buffer to write with
  *           nbytes -- the number of bytes to display
  *   OUTPUTS: data in the given buf displayed

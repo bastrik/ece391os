@@ -10,6 +10,9 @@
 #include "types.h"
 #include "lib.h"
 #include "i8259.h"
+#include "filesys.h"
+#include "system_call.h"
+#include "rtc.h"
 
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_IRQ_NUM   1
@@ -39,6 +42,7 @@
 
 /* Initializes the keyboard */
 extern void keyboard_init();
+void key_to_buffer(uint8_t scancode);
 /* Handler for keyboard interrupt */
 extern void keyboard_handler();
 /* Handler for ENTER key */

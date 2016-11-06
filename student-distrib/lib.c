@@ -55,10 +55,10 @@ void set_cursor(uint32_t x, uint32_t y) {
 void cursor_on_video() {
   /* cursor LOW port to vga INDEX register */
   outb(0x0F, 0x3D4);
-  outb((unsigned char)(NUM_COLS*screen_y + screen_x & 0xFF), 0x3D5);
+  outb((unsigned char)((NUM_COLS*screen_y + screen_x) & 0xFF), 0x3D5);
   /* cursor HIGH port to vga INDEX register */
   outb(0x0E, 0x3D4);
-  outb((unsigned char)((NUM_COLS*screen_y + screen_x >> 8) & 0xFF), 0x3D5);
+  outb((unsigned char)(((NUM_COLS*screen_y + screen_x) >> 8) & 0xFF), 0x3D5);
 }
 
 /*
@@ -104,10 +104,10 @@ void vert_scroll() {
   int x, y;
 
   /* change the video memory to move each line up by one */
-	for (x = 0; y < NUM_COLS; x++) {
-		for (y = 0; x < NUM_ROWS-1; y++) {
+	for (x = 0; x < NUM_COLS; x++) {
+		for (y = 0; y < NUM_ROWS-1; y++) {
 			*(uint8_t *)(video_mem + ((NUM_COLS*y + x) << 1)) =
-                                *(uint8_t *)(video_mem + ((NUM_COLS*(y+1) + x) << 1));
+                        *(uint8_t *)(video_mem + ((NUM_COLS*(y+1) + x) << 1));
 		}
 	}
 
