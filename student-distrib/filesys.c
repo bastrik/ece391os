@@ -155,7 +155,7 @@ int32_t file_read (int32_t fd, void* buf, int32_t nbytes)
 // MP3.3 File load -------------------------------------------------------
 /* 
  *	file_load(const int8_t * filename, uint32_t address)
- *  DESCRIPTION: Loads an executable file into memory
+ *  DESCRIPTION: Loads an executable file on given memory address
  *  INPUTS: 
  *			filename -- name of the executable file to load on memory 	
  *			address --  address in memory to load the file on
