@@ -152,6 +152,44 @@ int32_t file_read (int32_t fd, void* buf, int32_t nbytes)
 	filedesc[fd].file_pos = offset + ret;	// WILL cause issues when buffer length < nbytes
 	return ret;
 } 
+// MP3.3 File load -------------------------------------------------------
+/* 
+ *	file_load(const int8_t * filename, uint32_t address)
+ *  DESCRIPTION: Loads an executable file into memory
+ *  INPUTS: 
+ *			filename -- name of the executable file to load on memory 	
+ *			address --  address in memory to load the file on
+ *  OUTPUTS: 
+ *  RETURN VALUE: 0 on success, -1 on failure 
+ *  SIDE EFFECTS: a file is loaded on the memory space
+ */
+int32_t file_load(const int8_t * filename, uint32_t address) 
+{
+	dentry_t dentry;
+	
+	/* check if the given filename */
+	if(filename == NULL)
+	{
+		return -1;
+	}
+	
+	/* save the file's dentry data */
+	if(-1 == read_dentry_by_name((uint8_t *)filename, &dentry))
+	{
+		return -1;
+	}
+
+	/* load the file on the given address */
+	if(read_data(dentry.inode, 0, (uint8_t *)address, 
+	    							inodes[dentry.inode].size))
+	{
+		return -1;
+	}
+
+	/* Success */
+	return 0;
+}
+
 int32_t file_write (int32_t fd, void* buf, int32_t nbytes)
 {
 	return 0; // STUB
