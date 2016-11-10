@@ -80,6 +80,7 @@ int32_t dir_write();
 int32_t file_open ();
 int32_t file_read ();
 int32_t file_write ();
+int32_t file_load (const int8_t * filename, uint32_t address);
 void list_files();
 void read_file_name (const uint8_t* filename);
 void read_file_index (uint32_t* index);
