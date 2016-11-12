@@ -42,3 +42,19 @@ void pcb_init()
 	user_lvl_pcb->fd[1].flags = 1;			   // Mark this fd as present
 
 }
+
+/*
+ *   get_current_pcb()
+ *   DESCRIPTION: get the pcb for the current process by applying a bitmask to the current esp value
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
+pcb_t* get_current_pcb()
+{
+	/* Get the current esp value */
+	uint32_t esp;
+	asm volatile ("mov %%esp, %0" : "=r"(esp));
+	return (pcb_t*) (esp & PCB_BITMASK);
+}
