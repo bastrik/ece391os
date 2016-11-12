@@ -181,7 +181,7 @@ int32_t file_load(const int8_t * filename, uint32_t address)
 
 	/* load the file on the given address */
 	if(read_data(dentry.inode, 0, (uint8_t *)address, 
-	    							inodes[dentry.inode].size))
+	    							inode_start[dentry.inode].length))
 	{
 		return -1;
 	}

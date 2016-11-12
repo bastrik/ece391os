@@ -25,8 +25,9 @@ int32_t read (int32_t fd, void* buf, int32_t nbytes)
 
 int32_t write (int32_t fd, const void* buf, int32_t nbytes)
 {
-	return 0;
-} // nothing to do right now
+	if (fd < 0 || fd > 7)
+		return -1; 	// out of bounds
+} 
 
 int32_t open (const uint8_t* filename)
 {
@@ -63,8 +64,6 @@ int32_t open (const uint8_t* filename)
 
 		}
 	}
-
-
 
 	return fd_index;
 }

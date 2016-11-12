@@ -40,6 +40,9 @@
 #define LCTRL_RELEASE   0x9D
 #define BACKSPACE       0x0E
 
+/* fotp_t jump table for terminal file type */
+static fotp_t terminal_fotp;
+
 /* Initializes the keyboard */
 extern void keyboard_init();
 void key_to_buffer(uint8_t scancode);
