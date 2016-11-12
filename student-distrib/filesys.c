@@ -2,6 +2,7 @@
  * Includes File System Utilities */
 #include "filesys.h"
 #include "lib.h"
+#include "pcb.h"
 /* File system local variables */
 int is_Init = 0;
 boot_block_t* boot_block;
@@ -41,7 +42,9 @@ void fs_init(uint32_t start_addr)
  	dir_fotp.read = (uint32_t)&(dir_read);
  	dir_fotp.write = (uint32_t)&(dir_write);
  	is_Init = 1;
- 	//printf("fs init\n");
+ 	
+
+ 	//printf("fs init complete, esp = %d\n", get_current_pcb());
 }
 /* 
  *	read_dentry_by_name()
