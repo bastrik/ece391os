@@ -22,7 +22,7 @@ typedef struct {
 	uint32_t flags; 			// flags
 } file_descriptor_t;
 /*
- * File operations table pointer (move at a later date??)
+ * File operations table pointer
  */
 typedef struct {
 	int32_t (*open)(uint8_t*);			// file operations table pointer
