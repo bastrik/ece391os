@@ -55,6 +55,8 @@ void paging_init(){
 	page_directory[0].user_supervisor = 1;
 	page_directory[0].page_addr = ((uint32_t) (&page_table) >> BIT_SHIFT);
 
+	/* set up the shell page */
+	
 
 	/* enable paging */
 	uint32_t dir_ptr = (uint32_t)&page_directory;

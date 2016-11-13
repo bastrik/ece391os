@@ -8,6 +8,9 @@ void enable_4MBpaging(uint32_t address);
 
 #define KERNEL_ADDRESS 0x400000
 #define VIDEO_MEM_ADDRE 0xB8
+#define SHELL_ADDRESS 		0x800000
+#define SHELL_TABLE_ENTRY	0x20
+#define PROGRAM_ADDRESS 	0x1200000
 #define TABLE_SIZE 1024
 #define BIT_SHIFT 12
 
