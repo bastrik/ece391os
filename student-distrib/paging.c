@@ -58,7 +58,7 @@ void paging_init(){
 	/* set up the shell page */
 	page_directory[USER_PROGRAM_ENTRY].present = 1;
 	page_directory[USER_PROGRAM_ENTRY].rw = 1;
-	page_directory[USER_PROGRAM_ENTRY].user_supervisor = 0;
+	page_directory[USER_PROGRAM_ENTRY].user_supervisor = 1;
 	page_directory[USER_PROGRAM_ENTRY].page_size = 1;
 	page_directory[USER_PROGRAM_ENTRY].global = 1;
 	page_directory[USER_PROGRAM_ENTRY].page_addr = (uint32_t)(USER_PROGRAM_ADDRESS >> BIT_SHIFT); 

@@ -55,16 +55,8 @@ void test_syscall_write(int fd)
 {
 	char buf[] = "Terminal Write works!\0";
 	printf("Testing write()...\n");
-	if (fs_ready())
-	{
-		write(fd, (void*)buf, 256);
-		printf("%s\n", buf);
-	}
-	else 
-	{
-		printf("fs not ready\n");
-	}
-		
+	write(fd, (void*)buf, 256);
+	printf("%s\n", buf);
 }
 
 void test_syscall_close(int fd)
@@ -81,6 +73,6 @@ void test_syscall_close(int fd)
 void test_user_prog_page()
 {
 	printf("Testing User Program Page (Fail if page fault)...\n");
-	uint32_t* dummy = (uint32_t*) 0x800000;
-	printf("User Program Page works, uint32_t at 0x800000 is %d\n", dummy);
+	uint32_t* dummy = (uint32_t*) 0x8000000;
+	printf("User Program Page works, uint32_t at %x is %d\n", dummy, *dummy);
 }

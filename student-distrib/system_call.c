@@ -127,10 +127,11 @@ int32_t sigreturn (void)
  *  RETURN VALUE: return value of the specific system call
  *  SIDE EFFECTS: none
  */
-/*
-int32_t syscall_handler()
+
+/*int32_t syscall_handler()
 {
 	uint32_t syscall_num; 
 	asm volatile ("	movl 	%%eax, %0" : "=r"(syscall_num));
 	syscall_func[syscall_num]();
-}*/
+}
+*/
