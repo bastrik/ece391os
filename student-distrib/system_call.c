@@ -16,6 +16,9 @@ int32_t execute (const uint8_t* command)
 
 int32_t read (int32_t fd, void* buf, int32_t nbytes)
 {
+	// TODO: Complete line after pcb
+	//file_descriptor_t* filedesc =
+	
 	if (fd < 0 || fd > 7)
 		return -1; 	// out of bounds
 
@@ -25,14 +28,21 @@ int32_t read (int32_t fd, void* buf, int32_t nbytes)
 
 int32_t write (int32_t fd, const void* buf, int32_t nbytes)
 {
+	// TODO: Complete line after pcb
+	//file_descriptor_t* filedesc =
+
 	if (fd < 0 || fd > 7)
 		return -1; 	// out of bounds
 
+	((fotp_t*)filedesc[fd].fotp)->write(fd, buf, nbytes);
 	return 0;
 } 
 
 int32_t open (const uint8_t* filename)
 {
+	// TODO: Complete line after pcb
+	//file_descriptor_t* filedesc = 
+
 	int i;
 	dentry_t dentry;
 	int fd_index = -1;
@@ -72,6 +82,9 @@ int32_t open (const uint8_t* filename)
 
 int32_t close (int32_t fd)
 {
+	// TODO: Complete line after pcb
+	//file_descriptor_t* filedesc =
+
 	if (fd < 2 || fd > 7)
 		return -1; 	// out of bounds
 

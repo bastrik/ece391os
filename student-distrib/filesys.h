@@ -92,5 +92,4 @@ fotp_t dir_fotp;
 // File descriptor declared here (for debug purpose)
 file_descriptor_t filedesc[8];
 
-extern file_descriptor_t filedesc[8]; 	// checkpoint 2, declared in filesys.c
 #endif /* FILESYS_H */

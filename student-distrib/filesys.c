@@ -82,6 +82,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 */
  int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry)
  {
+ 	if (!fs_ready()) return -1;
  	if (index >= (boot_block -> sys_stat).num_dentry) return -1; /* If the index is out of bound, return -1*/
  	if (index < 0) return -1; /* If the index is less than 0, return -1*/
  	strncpy((int8_t*)dentry -> f_name, (int8_t*)(boot_block -> dentry)[index].f_name, FILE_NAME_MAX_L);
