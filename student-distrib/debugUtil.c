@@ -13,6 +13,7 @@ void test()
 	test_syscall_read(fd);
 	test_syscall_write(fd);
 	test_syscall_close(fd);
+	test_user_prog_page();
 }
 
 int test_syscall_open()
@@ -69,10 +70,17 @@ void test_syscall_write(int fd)
 void test_syscall_close(int fd)
 {
 	uint32_t prev_flags = filedesc[fd].flags;
-	printf("Testing write()...\n");
+	printf("Testing close()...\n");
 	close(fd);
 	if (filedesc[fd].flags == prev_flags) 
 		printf("Test for close() failed\n");
 	else
 		printf("Test for close() passed\n");
+}
+
+void test_user_prog_page()
+{
+	printf("Testing User Program Page (Fail if page fault)...\n");
+	uint32_t* dummy = (uint32_t*) 0x800000;
+	printf("User Program Page works, uint32_t at 0x800000 is %d\n", dummy);
 }
