@@ -1,6 +1,7 @@
 #include "debugUtil.h"
 #include "system_call.h"
 #include "filesys.h"
+#include "types.h"
 #include "lib.h"
 
 
@@ -8,25 +9,28 @@ void test()
 {
 	clear();
 	printf("\n");
-	int fd;
+	int32_t fd;
 	fd = test_syscall_open();
 	test_syscall_read(fd);
 	test_syscall_write(fd);
 	test_syscall_close(fd);
 	test_user_prog_page();
+	test_syscall_linkage();
 }
 
-int test_syscall_open()
+int32_t test_syscall_open()
 {
-	int fd;
-	printf("Testing open()...\n");
+	int32_t fd;
+	uint8_t buf[] = "frame1.txt\0";
+	uint8_t* ptr = buf;
+	printf("Testing open()...");
 	if (fs_ready())
 	{
-		fd = open("frame1.txt\0");
+		fd = open(ptr);
 		if (fd > 1 && fd < 8)
-			printf("Test for open() passed\n");
+			printf("Passed!\n");
 		else
-			printf("Test for open() failed\n");
+			printf("Failed!\n");
 	}
 	else 
 	{
@@ -36,10 +40,10 @@ int test_syscall_open()
 }
 
 
-void test_syscall_read(int fd)
+void test_syscall_read(int32_t fd)
 {
 	uint8_t buf[256];
-	printf("Testing read()...\n");
+	printf("Testing read() (see the fish for success)...\n");
 	if (fs_ready())
 	{
 		read(fd, (void*)buf, 256);
@@ -51,28 +55,44 @@ void test_syscall_read(int fd)
 	}
 }
 
-void test_syscall_write(int fd)
+void test_syscall_write(int32_t fd)
 {
 	char buf[] = "Terminal Write works!\0";
-	printf("Testing write()...\n");
+	printf("Testing write()...");
 	write(fd, (void*)buf, 256);
 	printf("%s\n", buf);
 }
 
-void test_syscall_close(int fd)
+void test_syscall_close(int32_t fd)
 {
 	uint32_t prev_flags = filedesc[fd].flags;
-	printf("Testing close()...\n");
+	printf("Testing close()...");
 	close(fd);
 	if (filedesc[fd].flags == prev_flags) 
-		printf("Test for close() failed\n");
+		printf("Failed!\n");
 	else
-		printf("Test for close() passed\n");
+		printf("Passed!\n");
 }
 
 void test_user_prog_page()
 {
-	printf("Testing User Program Page (Fail if page fault)...\n");
+	printf("Testing User Program Page (Fail if page fault)...");
 	uint32_t* dummy = (uint32_t*) 0x8000000;
-	printf("User Program Page works, uint32_t at %x is %d\n", dummy, *dummy);
+	printf("uint32_t at %x is %d\n", dummy, *dummy);
+}
+
+void test_syscall_linkage()
+{
+	printf("Testing syscall_handler()...");
+	uint8_t buf[] = "frame1.txt\0";
+	uint8_t* ptr = buf; 
+	asm volatile ("	movl 	$5, %%eax\n \
+					movl 	%0, %%ebx\n \
+				"	:
+					: "irm"(ptr));	
+	syscall_handler();
+	if (filedesc[2].flags) 
+		printf("Passed!\n");
+	else 
+		printf("Failed!\n");
 }

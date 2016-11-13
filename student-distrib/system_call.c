@@ -37,7 +37,7 @@ int32_t write (int32_t fd, const void* buf, int32_t nbytes)
 	if (fd < 0 || fd > 7)
 		return -1; 	// out of bounds
 
-	((fotp_t*)filedesc[fd].fotp)->write(fd, buf, nbytes);
+	((fotp_t*)filedesc[fd].fotp)->write(fd, (void*) buf, nbytes);
 	return 0;
 } 
 
@@ -45,7 +45,6 @@ int32_t open (const uint8_t* filename)
 {
 	// TODO: Complete line after pcb
 	//file_descriptor_t* filedesc = 
-
 	int i;
 	dentry_t dentry;
 	int fd_index = -1;
@@ -119,19 +118,35 @@ int32_t sigreturn (void)
 	return 0; // stub
 }
 
-/*  NOTE: Work In Progress
+/*  NOTE: WIP, 
+ * 
  *	syscall_handler()
- *  DESCRIPTION: Hander for system call (INT 0x80)
+ *  DESCRIPTION: Hander for system call (INT 0x80), See the below link for using %P calling function
+ * 		http://stackoverflow.com/questions/3467180/direct-call-using-gccs-inline-assembly
  *  INPUTS: none
  *  OUTPUTS: none
  *  RETURN VALUE: return value of the specific system call
  *  SIDE EFFECTS: none
  */
 
-/*int32_t syscall_handler()
+int32_t syscall_handler()
 {
-	uint32_t syscall_num; 
+	uint32_t syscall_num, result; 
 	asm volatile ("	movl 	%%eax, %0" : "=r"(syscall_num));
-	syscall_func[syscall_num]();
+	if (syscall_num > 0 && syscall_num <= 10)
+	{
+		void* func = syscall_func[syscall_num - 1];
+		asm volatile ("	pushl	%%edx\n 	\
+						pushl 	%%ecx\n 	\
+						pushl	%%ebx\n  	\
+						call 	*%P1	\n 	\
+						movl 	%%eax, %0\n  \
+						" 	:"=r"(result)
+							: "irm"(func));
+	}
+	else 
+	{
+		result = -1;
+	}
+	return result;
 }
-*/

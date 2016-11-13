@@ -175,7 +175,7 @@ void test_rtc()
 		int i;
 		int j;
 	for (i = 2; i <=1024; i*=2) {
-		rtc_write(1, (uint32_t *) &i, 4);
+		rtc_write(1, (uint8_t *) &i, 4);
 		//printf")
 		for (j=0;j<10;j++){
 			printf("a"); 
