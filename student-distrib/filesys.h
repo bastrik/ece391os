@@ -25,10 +25,10 @@ typedef struct {
  * File operations table pointer
  */
 typedef struct {
-	int32_t (*open)(uint8_t*);			// file operations table pointer
-	int32_t (*close)(int32_t);			// inode pointer
-	int32_t (*read)(int32_t, void*, int32_t);	// file position
-	int32_t (*write)(int32_t, void*, int32_t);	// STUB
+	uint32_t (*open)(uint8_t*);			// file operations table pointer
+	uint32_t (*close)(int32_t);			// inode pointer
+	uint32_t (*read)(int32_t, void*, int32_t);	// file position
+	uint32_t (*write)(int32_t, void*, int32_t);	// STUB
 } fotp_t;
 /* System Statistics struct 	*
  *								*/

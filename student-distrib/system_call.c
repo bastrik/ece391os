@@ -4,6 +4,9 @@
 #include "system_call.h"
 #include "filesys.h"
 
+void* syscall_func[10] = {&halt, &execute, &read, &write, &open,
+	&close, &getargs, &vidmap, &set_handler, &sigreturn};
+
 int32_t halt (uint8_t status)
 {
 	return 0; // stub
@@ -116,3 +119,18 @@ int32_t sigreturn (void)
 	return 0; // stub
 }
 
+/*  NOTE: Work In Progress
+ *	syscall_handler()
+ *  DESCRIPTION: Hander for system call (INT 0x80)
+ *  INPUTS: none
+ *  OUTPUTS: none
+ *  RETURN VALUE: return value of the specific system call
+ *  SIDE EFFECTS: none
+ */
+/*
+int32_t syscall_handler()
+{
+	uint32_t syscall_num; 
+	asm volatile ("	movl 	%%eax, %0" : "=r"(syscall_num));
+	syscall_func[syscall_num]();
+}*/
