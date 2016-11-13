@@ -12,6 +12,7 @@
 #include "paging.h"
 #include "system_call.h"
 #include "filesys.h"
+#include "debugUtil.h"
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
@@ -161,6 +162,7 @@ entry (unsigned long magic, unsigned long addr)
 	printf("Enabling Interrupts\n");
 	//printf("%d", 1/0);
 
+
 	// int j;
 	// clear();
 	// printf("TEST FOR RTC\n");
@@ -176,6 +178,8 @@ entry (unsigned long magic, unsigned long addr)
 	// }
 
 	sti();
+	/* Debug Util calls */
+	test();
 	/* Execute the first program (`shell') ... */
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");

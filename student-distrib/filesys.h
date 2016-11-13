@@ -84,5 +84,12 @@ int32_t file_load (const int8_t * filename, uint32_t address);
 void list_files();
 void read_file_name (const uint8_t* filename);
 void read_file_index (uint32_t* index);
-extern file_descriptor_t filedesc[8]; 	// checkpoint 2, declared in filesys.c
+int fs_ready();
+
+fotp_t file_fotp;
+fotp_t dir_fotp;
+
+// File descriptor declared here (for debug purpose)
+file_descriptor_t filedesc[8];
+
 #endif /* FILESYS_H */

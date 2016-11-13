@@ -8,10 +8,8 @@ int is_Init = 0;
 boot_block_t* boot_block;
 inode_t* inode_start; 
 uint32_t data_block_addr;
-fotp_t file_fotp;
-fotp_t dir_fotp;
-// File descriptor declared here
-file_descriptor_t filedesc[8];
+
+
 /* 
  *	fs_init()
  *  DESCRIPTION: initialize the file system
@@ -42,9 +40,6 @@ void fs_init(uint32_t start_addr)
  	dir_fotp.read = (uint32_t)&(dir_read);
  	dir_fotp.write = (uint32_t)&(dir_write);
  	is_Init = 1;
- 	
-
- 	//printf("fs init complete, esp = %d\n", get_current_pcb());
 }
 /* 
  *	read_dentry_by_name()
@@ -58,6 +53,7 @@ void fs_init(uint32_t start_addr)
  */
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 {
+	if (!fs_ready()) return -1;
 	int i;
 	int32_t found_file = -1;
 	for (i = 0; i < (boot_block -> sys_stat).num_dentry; ++i)
@@ -70,7 +66,9 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 			found_file = 0;
 			break;
 		}
+		
 	}
+
 	return found_file;
 }
  /* 
@@ -84,6 +82,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 */
  int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry)
  {
+ 	if (!fs_ready()) return -1;
  	if (index >= (boot_block -> sys_stat).num_dentry) return -1; /* If the index is out of bound, return -1*/
  	if (index < 0) return -1; /* If the index is less than 0, return -1*/
  	strncpy((int8_t*)dentry -> f_name, (int8_t*)(boot_block -> dentry)[index].f_name, FILE_NAME_MAX_L);
@@ -304,4 +303,9 @@ void read_file_index (uint32_t* index)
 	file_name[FILE_NAME_MAX_L - 1] = '\0';
 	printf("\nFile: %s\n", file_name);
 	
+}
+
+int fs_ready()
+{
+	return is_Init;
 }

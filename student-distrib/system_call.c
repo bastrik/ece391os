@@ -16,6 +16,9 @@ int32_t execute (const uint8_t* command)
 
 int32_t read (int32_t fd, void* buf, int32_t nbytes)
 {
+	// TODO: Complete line after pcb
+	//file_descriptor_t* filedesc =
+	
 	if (fd < 0 || fd > 7)
 		return -1; 	// out of bounds
 
@@ -25,17 +28,26 @@ int32_t read (int32_t fd, void* buf, int32_t nbytes)
 
 int32_t write (int32_t fd, const void* buf, int32_t nbytes)
 {
+	// TODO: Complete line after pcb
+	//file_descriptor_t* filedesc =
+
 	if (fd < 0 || fd > 7)
 		return -1; 	// out of bounds
+
+	((fotp_t*)filedesc[fd].fotp)->write(fd, buf, nbytes);
+	return 0;
 } 
 
 int32_t open (const uint8_t* filename)
 {
+	// TODO: Complete line after pcb
+	//file_descriptor_t* filedesc = 
+
 	int i;
-	dentry_t* dentry;
+	dentry_t dentry;
 	int fd_index = -1;
 
-	if (read_dentry_by_name(filename, dentry) == -1)	
+	if (read_dentry_by_name(filename, &dentry) == -1)	
 		return -1;	// if file doesn't exist
 
 	for (i = 2; i < FD_LENGTH; i++)
@@ -44,9 +56,9 @@ int32_t open (const uint8_t* filename)
 		{
 			fd_index = i;
 			filedesc[fd_index].flags = 1;	// use this loc
-			filedesc[fd_index].inode = dentry->inode;
+			filedesc[fd_index].inode = dentry.inode;
 			filedesc[fd_index].file_pos = 0;
-			switch (dentry->f_type)
+			switch (dentry.f_type)
 			{
 				case F_TYPE_RTC:
 					filedesc[fd_index].fotp = 0;//TODO
@@ -55,13 +67,13 @@ int32_t open (const uint8_t* filename)
 					filedesc[fd_index].fotp = 0;//TODO
 					break;
 				case F_TYPE_REGULAR:
-					filedesc[fd_index].fotp = 0;//TODO
+					filedesc[fd_index].fotp = (uint32_t) &file_fotp;
 					break;
 				default:
 					break;
 			}
 			
-
+		break;	// break out of the loop if fd assigned 
 		}
 	}
 
@@ -70,6 +82,9 @@ int32_t open (const uint8_t* filename)
 
 int32_t close (int32_t fd)
 {
+	// TODO: Complete line after pcb
+	//file_descriptor_t* filedesc =
+
 	if (fd < 2 || fd > 7)
 		return -1; 	// out of bounds
 
