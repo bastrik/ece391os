@@ -98,10 +98,10 @@ void keyboard_init(void) {
   test_flag = 0;
 
   /* Initialize terminal fotp*/
-  terminal_fotp.write = (uint32_t)&(terminal_write);
-  terminal_fotp.read = (uint32_t)&(terminal_read);
-  terminal_fotp.open = (uint32_t)&(terminal_open);
-  terminal_fotp.close = (uint32_t)&(terminal_close);
+  terminal_fotp.write = (void*)&(terminal_write);
+  terminal_fotp.read = (void*)&(terminal_read);
+  terminal_fotp.open = (void*)&(terminal_open);
+  terminal_fotp.close = (void*)&(terminal_close);
 
 }
 

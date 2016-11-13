@@ -31,14 +31,14 @@ void fs_init(uint32_t start_addr)
  	// for checkpoint 2 we want to init our file descriptor
  	filedesc[0].flags = 1;	// stdin
  	filedesc[1].flags = 1;	// stdout
- 	file_fotp.open = (uint32_t)&(file_open);
+ 	file_fotp.open = (void*)&(file_open);
  	//file_fotp.close = (uint32_t)&(file_close);
- 	file_fotp.read = (uint32_t)&(file_read);
- 	file_fotp.write = (uint32_t)&(file_write);
- 	dir_fotp.open = (uint32_t)&(dir_open);
- 	dir_fotp.close = (uint32_t)&(dir_close);
- 	dir_fotp.read = (uint32_t)&(dir_read);
- 	dir_fotp.write = (uint32_t)&(dir_write);
+ 	file_fotp.read = (void*)&(file_read);
+ 	file_fotp.write = (void*)&(file_write);
+ 	dir_fotp.open = (void*)&(dir_open);
+ 	dir_fotp.close = (void*)&(dir_close);
+ 	dir_fotp.read = (void*)&(dir_read);
+ 	dir_fotp.write = (void*)&(dir_write);
  	is_Init = 1;
 }
 /* 
