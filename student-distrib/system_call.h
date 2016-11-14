@@ -4,6 +4,14 @@
 #define SYSTEM_CALL_H
 
 #include "types.h"
+#include "paging.h"
+#include "filesys.h"
+#include "rtc.h"
+#include "keyboard.h"
+#include "x86_desc.h"
+#include "lib.h"
+#include "i8259.h"
+//#include "pcb.h"
 
 #define FD_LENGTH 8
 
@@ -55,5 +63,7 @@ int32_t set_handler (int32_t signum, void* handler_address);
 int32_t sigreturn (void);
 
 int32_t syscall_handler();
+/* helper function */
+int8_t get_usable_pid();
 
 #endif /* SYSTEM_CALL_H */
