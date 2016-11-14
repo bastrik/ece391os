@@ -304,6 +304,9 @@ int32_t syscall_handler()
 						pushl 	%%ecx\n 	\
 						pushl	%%ebx\n  	\
 						call 	*%P1	\n 	\
+						popl	%%ebx\n		\
+						popl	%%ecx\n		\
+						popl	%%edx\n		\
 						movl 	%%eax, %0\n  \
 						" 	:"=r"(result)
 							: "irm"(func));
