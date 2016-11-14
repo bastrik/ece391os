@@ -183,32 +183,34 @@ int32_t execute (const uint8_t* command)
 
 int32_t read (int32_t fd, void* buf, int32_t nbytes)
 {
-	// TODO: Complete line after pcb
-	//file_descriptor_t* filedesc =
+	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 	
 	if (fd < 0 || fd > 7)
 		return -1; 	// out of bounds
 
-	((fotp_t*)filedesc[fd].fotp)->read(fd, buf, nbytes);
+	(filedesc[fd].fotp)->read(fd, (void*) buf, nbytes);
 	return 0;
 }
 
 int32_t write (int32_t fd, const void* buf, int32_t nbytes)
 {
-	// TODO: Complete line after pcb
-	//file_descriptor_t* filedesc =
+	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 
 	if (fd < 0 || fd > 7)
 		return -1; 	// out of bounds
 
-	((fotp_t*)filedesc[fd].fotp)->write(fd, (void*) buf, nbytes);
+	printf("%x\n", ((fotp_t*)filedesc[fd].fotp)->write);
+	printf("%x\n", file_fotp.write);
+	(filedesc[fd].fotp)->write(fd, (void*) buf, nbytes);
 	return 0;
 } 
 
 int32_t open (const uint8_t* filename)
 {
-	// TODO: Complete line after pcb
-	//file_descriptor_t* filedesc = 
+	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 	int i;
 	dentry_t dentry;
 	int fd_index = -1;
@@ -233,23 +235,22 @@ int32_t open (const uint8_t* filename)
 					filedesc[fd_index].fotp = 0;//TODO
 					break;
 				case F_TYPE_REGULAR:
-					filedesc[fd_index].fotp = (uint32_t) &file_fotp;
+					filedesc[fd_index].fotp = &file_fotp;
 					break;
 				default:
 					break;
 			}
-			
+		printf("%x\n", (uint32_t) file_fotp.write);
 		break;	// break out of the loop if fd assigned 
 		}
 	}
-
 	return fd_index;
 }
 
 int32_t close (int32_t fd)
 {
-	// TODO: Complete line after pcb
-	//file_descriptor_t* filedesc =
+	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 
 	if (fd < 2 || fd > 7)
 		return -1; 	// out of bounds
@@ -334,3 +335,39 @@ int8_t get_usable_pid() {
 	}
 	return -1;
 }
+
+/*
+ * init_pcb
+ * DESCRIPTION: Initialize the pcb [stdin/stdout/clear space of file_array]
+ * Input: PCB pointer
+ * Ouput: None
+ * RETURN: None
+ * Side_Effect: None
+ */
+void init_pcb(pcb_t* pcb) {
+
+	int i;
+
+	// initialize stdin
+	pcb->file_array[0].fotp = (fotp_t*) &terminal_fotp;
+	pcb->file_array[0].inode = 0;
+	pcb->file_array[0].file_pos = 0;
+	pcb->file_array[0].flags = 1;
+
+	// initialize stdout
+	pcb->file_array[1].fotp = (fotp_t*) &terminal_fotp;
+	pcb->file_array[1].inode = 0;
+	pcb->file_array[1].file_pos = 0;
+	pcb->file_array[1].flags = 1;
+	
+	// initialize the file array
+	for(i = 2; i < FD_LENGTH; i++) {
+		pcb->file_array[i].fotp = 0;
+		pcb->file_array[i].inode = 0;
+		pcb->file_array[i].file_pos = 0;
+		pcb->file_array[i].flags = 0;
+	}
+
+	pcb->parent_ptr = NULL;
+}
+

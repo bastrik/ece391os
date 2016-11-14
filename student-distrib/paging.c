@@ -11,8 +11,8 @@
  * RETURN: NONE
  * SIDE EFFECT: Enable interrupt. Page directory and page table set.
  */
-void paging_init(){
-
+void paging_init()
+{
 	int i;
 	
 	/* Initialize the page_directory and the  page_table */
@@ -55,13 +55,6 @@ void paging_init(){
 	page_directory[0].user_supervisor = 1;
 	page_directory[0].page_addr = ((uint32_t) (&page_table) >> BIT_SHIFT);
 
-	/* set up the shell page */
-	page_directory[USER_PROGRAM_ENTRY].present = 1;
-	page_directory[USER_PROGRAM_ENTRY].rw = 1;
-	page_directory[USER_PROGRAM_ENTRY].user_supervisor = 1;
-	page_directory[USER_PROGRAM_ENTRY].page_size = 1;
-	page_directory[USER_PROGRAM_ENTRY].global = 1;
-	page_directory[USER_PROGRAM_ENTRY].page_addr = (uint32_t)(USER_PROGRAM_ADDRESS >> BIT_SHIFT); 
 
 	/* enable paging */
 	uint32_t dir_ptr = (uint32_t)&page_directory;
@@ -91,4 +84,42 @@ void enable_4MBpaging(uint32_t address)
 	: "memory", "cc" );
 }
 
+void map_to_4mb(uint32_t virt_addr, uint32_t phys_addr, uint32_t pid)
+{
+	uint32_t pd_idx;
+	pd_idx = (uint32_t) (virt_addr / MB4); // should be 32 for program at 128Mb
 
+	process_page_directory[pid].page_directory_array[pd_idx].present =1;
+	process_page_directory[pid].page_directory_array[pd_idx].rw =1;
+	process_page_directory[pid].page_directory_array[pd_idx].user_supervisor =1;
+	process_page_directory[pid].page_directory_array[pd_idx].write_through =0;
+	process_page_directory[pid].page_directory_array[pd_idx].cache_disabled =0;
+	process_page_directory[pid].page_directory_array[pd_idx].accessed =0;
+	process_page_directory[pid].page_directory_array[pd_idx].reserved =0;
+	process_page_directory[pid].page_directory_array[pd_idx].page_size =1;
+	process_page_directory[pid].page_directory_array[pd_idx].global =1;
+	process_page_directory[pid].page_directory_array[pd_idx].avail =0;
+	process_page_directory[pid].page_directory_array[pd_idx].page_addr =(uint32_t)(phys_addr >> BIT_SHIFT);		
+}
+
+/*
+/*Set_table
+ *Description: Point cr3 to page directory helper to set paging for new_pid
+ *INPUT: new_pid val
+ *OUTPUT: none
+ *RETURN: none
+ *Side Effect: None
+ */
+void set_table(int32_t pid)
+{
+	uint32_t page_dir_ptr;
+	page_dir_ptr = (uint32_t)&process_page_directory[pid];
+
+	// point cr3 to page directory
+	asm volatile("					\n\
+			movl	%0, %%cr3		\n\
+			"
+			:
+			: "r" (page_dir_ptr)
+			); 
+}

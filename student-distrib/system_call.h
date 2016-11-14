@@ -11,9 +11,9 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "i8259.h"
-//#include "pcb.h"
 
 #define FD_LENGTH 8
+#define BUFFERSIZE 128 // size of command buffer
 
 #define SYS_HALT    1
 #define SYS_EXECUTE 2
@@ -26,21 +26,21 @@
 #define SYS_SET_HANDLER  9
 #define SYS_SIGRETURN  10
 
-/* System Call jump table struct */
-typedef struct 
-{
-	uint32_t (*halt)(uint8_t);	
-	uint32_t (*execute)(uint8_t*);
-	uint32_t (*read)(int32_t, void*, int32_t);
-	uint32_t (*write)(int32_t, void*, int32_t);	
-	uint32_t (*open)(uint8_t*);			
-	uint32_t (*close)(int32_t);			
-	uint32_t (*getargs)(uint8_t*, int32_t);
-	uint32_t (*vidmap)(uint8_t**);
-	uint32_t (*set_handler)(int32_t, void*);
-	uint32_t (*sigreturn)(void);
+/* The PCB struct */
+typedef struct PCB{
+	int32_t pid;
 	
-} syscall_jmp_table;
+	file_descriptor_t file_array[FD_LENGTH];
+	uint8_t cmd[BUFFERSIZE];
+	uint8_t args[BUFFERSIZE]; 
+
+	int32_t parent_ptr;
+	int32_t esp;
+	int32_t ebp;
+
+}pcb_t;
+
+pcb_t* curr_pcb;
 
 int32_t halt (uint8_t status);
 
@@ -65,5 +65,8 @@ int32_t sigreturn (void);
 int32_t syscall_handler();
 /* helper function */
 int8_t get_usable_pid();
+
+
+void init_pcb(pcb_t* pcb);
 
 #endif /* SYSTEM_CALL_H */

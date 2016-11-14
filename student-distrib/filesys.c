@@ -2,7 +2,7 @@
  * Includes File System Utilities */
 #include "filesys.h"
 #include "lib.h"
-#include "pcb.h"
+#include "system_call.h"
 /* File system local variables */
 int is_Init = 0;
 boot_block_t* boot_block;
@@ -28,11 +28,16 @@ void fs_init(uint32_t start_addr)
  	inode_start = (inode_t*) (boot_block + 1);
 	/* assign the start address of the first data block */
  	data_block_addr = ((uint32_t) inode_start) + (boot_block -> sys_stat).num_inode * BLOCK_SIZE;
- 	// for checkpoint 2 we want to init our file descriptor
- 	filedesc[0].flags = 1;	// stdin
- 	filedesc[1].flags = 1;	// stdout
+
+ 	/* NOTE: DEBUG: Initialzie the kernel PCB */
+ 	pcb_t kernel_pcb;
+	init_pcb(&kernel_pcb);
+	curr_pcb = &kernel_pcb;
+
+	/* DEBUG END*/
+
  	file_fotp.open = (void*)&(file_open);
- 	//file_fotp.close = (uint32_t)&(file_close);
+ 	file_fotp.close = (void*)&(file_close);
  	file_fotp.read = (void*)&(file_read);
  	file_fotp.write = (void*)&(file_write);
  	dir_fotp.open = (void*)&(dir_open);
@@ -68,7 +73,6 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 		}
 		
 	}
-
 	return found_file;
 }
  /* 
@@ -140,13 +144,20 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 	}
 	return 0; 	// should not reach here
 }
-//TODO: fncs
+
 int32_t file_open (const uint8_t* filename)
 {
 	return 0; 	// do nothing becuase nothing means everything
 }
+
+int32_t file_close (int32_t fd)
+{
+	return 0; 	// do nothing becuase nothing means everything
+}
+
 int32_t file_read (int32_t fd, void* buf, int32_t nbytes)
 {
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 	uint32_t offset = filedesc[fd].file_pos;
 	int ret = read_data(filedesc[fd].inode, offset, buf, nbytes);
 	if (ret == 0 || -1)

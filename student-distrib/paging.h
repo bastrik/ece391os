@@ -5,6 +5,8 @@
 
 extern void paging_init();
 void enable_4MBpaging(uint32_t address);
+void map_to_4mb(uint32_t virt_addr, uint32_t phys_addr, uint32_t pid);
+void set_table(int32_t pid);
 
 #define KERNEL_ADDRESS 0x400000
 #define VIDEO_MEM_ADDRE 0xB8
@@ -12,6 +14,12 @@ void enable_4MBpaging(uint32_t address);
 #define USER_PROGRAM_ENTRY			0x20
 #define TABLE_SIZE 1024
 #define BIT_SHIFT 12
+
+#define MB132 0x8400000
+#define MB128 0x8000000
+#define MB8   0x800000
+#define MB4   0x400000
+#define KB8   0x2000
 
 //FROM OSDEV
 //S, or 'Page Size' stores the page size for that specific entry. If the bit is set, then pages are 4 MiB in size. Otherwise, they are 4 KiB. Please note that 4-MiB pages require PSE to be enabled.
@@ -76,6 +84,14 @@ typedef union page_directory_entry_desc_4Mb{
 		uint32_t page_addr : 20;
 	}__attribute__((packed));
 }page_directory_entry_desc_4Mb;
+
+
+typedef	struct process_page_directory_desc{
+	page_directory_entry_desc page_directory_array[1024] __attribute__((aligned(4096)));
+}process_page_directory_desc;
+
+process_page_directory_desc process_page_directory[7];
+
 	
 
 page_directory_entry_desc page_directory[1024] __attribute__((aligned(4096)));
