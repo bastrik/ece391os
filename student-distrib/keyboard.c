@@ -1,7 +1,5 @@
-/*
- * keyboard.c
- * This is a keyboard driver for SamplersOS
- */
+/* keyboard.c
+ * This is a keyboard driver for SamplersOS */
 
 #include "keyboard.h"
 #include "types.h"
@@ -9,23 +7,25 @@
 #include "lib.h"
 #include "filesys.h"
 #include "system_call.h"
+#include "filesys.h"
+
+/* String buffer to be displayed on the screen */
+static uint8_t key_buffer[KEY_BUFF_LEN];
+static uint32_t key_buffer_idx;
+
+/* Buffer for read system call */
+static uint8_t read_buffer[KEY_BUFF_LEN];
+static uint32_t read_buffer_idx;
+volatile uint8_t read_flag;
+
+/* key flags for shift, capslock, ctrl respectively */
+static uint8_t key_flag[KEY_FLAG_NUM];
 
 // FOR TEST CASES for DEMO of MP3.2
 static uint32_t rtc_freq;
 static uint8_t test_case_buf[KEY_BUFF_LEN];
 static uint32_t read_idx;
 static int8_t test_flag;
-
-
-
-/* string buffer to be displayed on the screen */
-static uint8_t key_buffer[KEY_BUFF_LEN];
-static uint32_t key_buffer_idx;
-
-/* key flags for shift, capslock, ctrl respectively */
-static uint8_t key_flag[KEY_FLAG_NUM];
-
-volatile uint8_t enter_flag;
 
 /* the fowlloing key mapping corresponds to the scan code set 1
  * the keys that this driver doesn't support is set as NULL ('\0')
@@ -81,11 +81,12 @@ void keyboard_init(void) {
     key_flag[i] = 0;
   }
   /* initialize the key_buffer and the index */
-  for (i = 0; i < KEY_BUFF_LEN; i++) {
-    key_buffer[i] = '\0';
-  }
+  key_buffer[0] = '\0';
   key_buffer_idx = 0;
-  enter_flag = RELEASE;
+
+  read_buffer[0] = '\0';
+  read_buffer_idx = 0;
+  read_flag = 0;
 
   // FOR TEST CASES for DEMO of MP3.2
   rtc_freq = 2;
@@ -94,6 +95,13 @@ void keyboard_init(void) {
 	   test_case_buf[i] = '\0';
   }
   test_flag = 0;
+
+  /* Initialize terminal fotp*/
+  // terminal_fotp.write = (void*)&(terminal_write);
+  // terminal_fotp.read = (void*)&(terminal_read);
+  // terminal_fotp.open = (void*)&(terminal_open);
+  // terminal_fotp.close = (void*)&(terminal_close);
+
 }
 
 /*
@@ -110,71 +118,70 @@ void keyboard_init(void) {
  */
 void keyboard_handler() {
   /* Beginning of a critical section  */
-  //cli();
-  uint8_t scancode = 0;
-  //printf("in handler");
-  /* obtaining scan code from keyboard
-   * credit to PS2/2 Keyboard - OSDev Wiki
-   * http://wiki.osdev.org/Keyboard
-   */
-/*  do {
-    if (inb(KEYBOARD_DATA_PORT)!= scancode) {*/
-      scancode = inb(KEYBOARD_DATA_PORT);
-/*      if (scancode < 1) {
-        break;
-      }
-    }
-  } while(1);*/
+  uint8_t scancode = inb(KEYBOARD_DATA_PORT);
 
   /* handles the obtained scan code */
   switch (scancode) {
-    case ENTER: {
-        if (test_flag == 0) {
-          enter_handler();
-        }
-        else {
-          keyboard_test();
-        }
-        break;
-      }
     case CAPSLOCK:
       key_flag[CAPS] = PRESS - key_flag[CAPS];
-      break;
+      return;
     case LSHIFT_PRESS:
       key_flag[SHIFT] = PRESS;
-      break;
+      return;
     case LSHIFT_RELEASE:
       key_flag[SHIFT] = RELEASE;
-      break;
+      return;
     case RSHIFT_PRESS:
       key_flag[SHIFT] = PRESS;
-      break;
+      return;
     case RSHIFT_RELEASE:
       key_flag[SHIFT] = RELEASE;
-      break;
+      return;
     case LCTRL_PRESS:
       key_flag[CTRL] = PRESS;
-      break;
+      return;
     case LCTRL_RELEASE:
       key_flag[CTRL] = RELEASE;
-      break;
+      return;
     case BACKSPACE:
-      backspace_hander();
-      break;
+      if (key_buffer_idx != 0) {
+        key_buffer_idx--;
+        key_buffer[key_buffer_idx] = '\0';
+        set_cursor_backspace();
+      }
+      return;
+    case ENTER:
+      set_cursor_enter();
+
+      /* Transfer the key buffer to read buffer */
+      int i;
+      for (i = 0; i < key_buffer_idx; i++) {
+        read_buffer[i] = key_buffer[i];
+      }
+
+      /* Clear the key buffer */
+      for (i = 0; i < KEY_BUFF_LEN; i++) {
+        key_buffer[i] = 0;
+      }
+
+      /* Add line feed character */
+      read_buffer[key_buffer_idx] = '\n';
+
+      /* Set the flag for read buffer */
+      cli();
+      read_buffer_idx = key_buffer_idx;
+      read_flag = 1;
+      sti();
+
+      key_buffer[0] = '\0';
+      key_buffer_idx = 0;
+      return;
     default:
       key_to_buffer(scancode);
-      break;
+      return;
   }
 
-
-
-  /* system call check */
-  //if (scancode < 0x80)
-  //  putc(keyboard_char_norm[scancode]);
-    send_eoi(KEYBOARD_IRQ_NUM);
-
-  /* End of the critical section */
-  //sti();
+  //send_eoi(KEYBOARD_IRQ_NUM);
 }
 
 /*
@@ -213,6 +220,9 @@ void key_to_buffer(uint8_t scancode) {
     if (key == 'l' || key == 'L') {
       clear();
       set_cursor(0, 0);
+      /* Initialize key buffer */
+      key_buffer[0] = '\0';
+      key_buffer_idx = 0;
       return;
     }
   }
@@ -225,16 +235,18 @@ void key_to_buffer(uint8_t scancode) {
       clear();
       set_cursor(0, 0);
       list_files();
+      /* Initialize key buffer */
+      key_buffer[0] = '\0';
+      key_buffer_idx = 0;
       return;
     }
-
     // CTRL+2: Read by file name////////////////////////////////////////////////
     if (key == '2') {
       clear();
       set_cursor(0, 0);
       test_flag = 1; //indicate that the test function ctrl+2 started
       /* invoke user to type in the file name then press enter */
-      printf("file name: ");
+      keyboard_test();
       return;
     }
     // CTRL+3: Read by file index//////////////////////////////////////////////
@@ -244,6 +256,10 @@ void key_to_buffer(uint8_t scancode) {
       set_cursor(0, 0);
       read_file_index(&read_idx);
       read_idx++;
+      /* Initialize key buffer */
+      key_buffer[0] = '\0';
+      key_buffer_idx = 0;
+
       return;
     }
     // CTRL+4: Start RTC test
@@ -251,6 +267,9 @@ void key_to_buffer(uint8_t scancode) {
       test_flag = 0; // reset the test flag for ctrl 2 function
       clear();
       set_cursor(0, 0);
+      /* Initialize key buffer */
+      key_buffer[0] = '\0';
+      key_buffer_idx = 0;
 	  //test_rtc();
      // test_rtc(rtc_freq, 1);
     //  rtc_freq *= 2;
@@ -264,6 +283,9 @@ void key_to_buffer(uint8_t scancode) {
      // test_rtc(rtc_freq, 0);
       clear();
       set_cursor(0, 0);
+      /* Initialize key buffer */
+      key_buffer[0] = '\0';
+      key_buffer_idx = 0;
       return;
     }
   }
@@ -283,10 +305,14 @@ void key_to_buffer(uint8_t scancode) {
  *  TEST functiong for CTRL+2 function
  */
 void keyboard_test() {
+  printf("File Name: ");
+
   /* put the typed string into a string buffer */
   int buf_len = terminal_read(1, test_case_buf, KEY_BUFF_LEN);
   // check if nothing has been typed
   if (buf_len == 0) {
+    printf("Nothing is typed in!\n");
+    printf("File Name: ");
     return;
   }
 
@@ -296,11 +322,6 @@ void keyboard_test() {
   read_file_name(test_case_buf);
   //read_file_name("frame0.txt");
 
-  // printing is done, clear the test_case_buf
-  int i;
-  for (i = 0; i < KEY_BUFF_LEN; i++) {
-      test_case_buf[i] = '\0';
-  }
   /* task is done, invoke user again to type in the next file name */
   printf("\nFile name: ");
 }
@@ -318,7 +339,7 @@ void keyboard_test() {
 void enter_handler() {
   key_buffer[++key_buffer_idx] = '\n';
   set_cursor_enter();
-  enter_flag = 1;
+
   //printf("enter pressed!");
   return;
 }
@@ -354,22 +375,35 @@ void backspace_hander() {
  */
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
   int i, retval;
-  /* fill the given buffer */
+
+  /* Check the nbytes parameter */
+  if (nbytes == 0) {
+    read_flag = 0;
+    return 0;
+  }
+
+  /* Wail untill ENTER is pressed */
+  sti();
+  while(!read_flag);
+  cli();
+
+  /* Clear the flag */
+  read_flag = 0;
+
+  /* Fill the given buffer */
   for (i = 0; i < nbytes; i++) {
-    if (key_buffer[i] == '\0') {
+    if (read_buffer[i] == '\0') {
       break;
     }
-		((uint8_t *)buf)[i] = key_buffer[i];
+		((uint8_t *)buf)[i] = read_buffer[i];
   }
+
+  printf("%s\n", (char *)buf);
+
   /* save the return value -- the number of bytes read */
   retval = i;
-  /* clear the key_buffer */
-  for (i = 0; i < KEY_BUFF_LEN; i++) {
-    key_buffer[i] = '\0';
-  }
-  /* reset the key buffer index */
-  key_buffer_idx = 0;
 
+  sti();
 
   return retval;
 }
