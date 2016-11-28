@@ -90,7 +90,7 @@ void read_file_name (const uint8_t* filename);
 void read_file_index (uint32_t* index);
 int fs_ready();
 
-file_descriptor_t filedesc[8]; // debug
+//file_descriptor_t filedesc[8]; // debug
 
 fotp_t file_fotp;
 fotp_t dir_fotp;

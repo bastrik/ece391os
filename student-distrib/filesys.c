@@ -30,10 +30,10 @@ void fs_init(uint32_t start_addr)
  	data_block_addr = ((uint32_t) inode_start) + (boot_block -> sys_stat).num_inode * BLOCK_SIZE;
 
  	/* debug */
- 	filedesc[0].flags = 1;
+/* 	filedesc[0].flags = 1;
  	filedesc[0].fotp = &terminal_fotp;
  	filedesc[1].flags = 1;
- 	filedesc[1].fotp = &terminal_fotp;
+ 	filedesc[1].fotp = &terminal_fotp;*/
  	/* End debug*/
 
  	file_fotp.open = (void*)&(file_open);
@@ -157,7 +157,7 @@ int32_t file_close (int32_t fd)
 
 int32_t file_read (int32_t fd, void* buf, int32_t nbytes)
 {
-	//file_descriptor_t* filedesc = curr_pcb -> file_array;
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 	uint32_t offset = filedesc[fd].file_pos;
 	int ret = read_data(filedesc[fd].inode, offset, buf, nbytes);
 	if (ret == 0 || -1)

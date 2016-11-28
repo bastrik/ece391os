@@ -9,7 +9,7 @@ kernel_ds:
 
 .text
 
-.globl keyboard_handler_asm, rtc_handler_asm
+.globl keyboard_handler_asm, rtc_handler_asm, systemcall_handler_asm
 
 keyboard_handler_asm:
 	pushl	%eax
@@ -53,6 +53,48 @@ rtc_handler_asm:
 	call rtc_handler
 	popal
 	iret
+
+systemcall_handler_asm:
+	cmpl	$0, %eax
+	jle		fail
+	cmpl	$10, %eax
+	jg		fail
+
+	pushl %edi
+	pushl %esi
+
+	pushl %ds
+	pushl %es
+	pushl %fs
+	pushl %gs
+
+	pushl %edx
+	pushl %ecx
+	pushl %ebx
+
+	movl kernel_ds, %edx
+	movl %edx, %ds
+
+	decl	%eax
+	call	*system_calls_table(,%eax,4)
+
+	popl %ebx
+	popl %ecx
+	popl %edx
+
+	popl %gs
+	popl %fs
+	popl %es
+	popl %ds
+
+	popl %esi
+	popl %edi
+
+	iret
+
 fail:
 	movl $-1, %eax
 	iret
+
+system_calls_table:
+	.long halt, execute, read, write, open, close, getargs, vidmap, set_handler, sigreturn

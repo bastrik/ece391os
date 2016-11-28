@@ -363,6 +363,10 @@ void backspace_hander() {
  */
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
   int i, retval;
+  while(!enter_flag)
+  {
+      sti();
+  }
   /* fill the given buffer */
   for (i = 0; i < nbytes; i++) {
     if (key_buffer[i] == '\0') {
@@ -378,6 +382,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
   }
   /* reset the key buffer index */
   key_buffer_idx = 0;
+  enter_flag = 0;
 
 
   return retval;

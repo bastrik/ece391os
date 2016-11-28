@@ -96,7 +96,7 @@ void set_up_idt_handler() {
 			else
 			{
 				idt[i].dpl = 3;
-				SET_IDT_ENTRY(idt[i], &syscall_handler);
+				SET_IDT_ENTRY(idt[i], &systemcall_handler_asm);
 			}
 	}
 	/* set the IDT entry of the keyboard_handler */

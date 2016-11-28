@@ -2,6 +2,7 @@
  * includes 10 system calls */
 
 #include "system_call.h"
+#include "x86_desc.h"
 
 
 #define BUFFERSIZE 128 // size of command buffer
@@ -252,7 +253,7 @@ int32_t execute (const uint8_t* command)
 int32_t read (int32_t fd, void* buf, int32_t nbytes)
 {
 	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
-	//file_descriptor_t* filedesc = curr_pcb -> file_array;
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 	
 	if (fd < 0 || fd > 7)
 		return -1; 	// out of bounds
@@ -264,8 +265,7 @@ int32_t read (int32_t fd, void* buf, int32_t nbytes)
 int32_t write (int32_t fd, const void* buf, int32_t nbytes)
 {
 	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
-	//file_descriptor_t* filedesc = curr_pcb -> file_array;
-
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 	if (fd < 0 || fd > 7)
 		return -1; 	// out of bounds
 
@@ -276,7 +276,7 @@ int32_t write (int32_t fd, const void* buf, int32_t nbytes)
 int32_t open (const uint8_t* filename)
 {
 	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
-	//file_descriptor_t* filedesc = curr_pcb -> file_array;
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 	int i;
 	dentry_t dentry;
 	int fd_index = -1;
@@ -316,7 +316,7 @@ int32_t open (const uint8_t* filename)
 int32_t close (int32_t fd)
 {
 	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
-	//file_descriptor_t* filedesc = curr_pcb -> file_array;
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 
 	if (fd < 2 || fd > 7)
 		return -1; 	// out of bounds
@@ -367,20 +367,35 @@ int32_t sigreturn (void)
  *  SIDE EFFECTS: none
  */
 
-int32_t syscall_handler()
+/*int32_t syscall_handler()
 {
+	printf("%d\n", KERNEL_DS);
 	uint32_t syscall_num, result; 
 	asm volatile ("	movl 	%%eax, %0" : "=r"(syscall_num));
 	if (syscall_num > 0 && syscall_num <= 10)
 	{
 		void* func = syscall_func[syscall_num - 1];
-		asm volatile ("	pushl	%%edx\n 	\
+		asm volatile ("	pushl 	%%edi\n 	\
+						pushl 	%%esi\n 	\
+						pushl 	%%ds\n 		\
+						pushl 	%%es\n 		\
+						pushl	%%fs\n 		\
+						pushl 	%%gs\n 		\
+						pushl	%%edx\n 	\
 						pushl 	%%ecx\n 	\
 						pushl	%%ebx\n  	\
+						movw 	$KERNEL_DS, %%dx\n \
+						movw 	%%dx, %%ds\n 	\
 						call 	*%P1	\n 	\
 						popl	%%ebx\n		\
 						popl	%%ecx\n		\
 						popl	%%edx\n		\
+						popl 	%%gs\n 		\
+						popl 	%%fs\n 		\
+						popl 	%%es\n 		\
+						popl 	%%ds\n 		\
+						popl 	%%esi\n 	\
+						popl 	%%edi\n 	\
 						movl 	%%eax, %0\n  \
 						" 	:"=r"(result)
 							: "irm"(func));
@@ -390,7 +405,7 @@ int32_t syscall_handler()
 		result = -1;
 	}
 	return result;
-}
+}*/
 /*
  * get_usable_pid()
  * DESCRIPTION: Find and returns an usable pid number
