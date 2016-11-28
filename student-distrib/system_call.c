@@ -118,7 +118,6 @@ int32_t execute (const uint8_t* command)
 	pcb_t  new_pcb; 
 	pcb_t* pcb_pointer; 
 	init_pcb(&new_pcb);
-
 	/* Save the command (for now, don't care about the arguments)*/
 	for (i = 0; i < BUFFERSIZE; i++) {
 		if ((command[i] == ' ') || (command[i] == '\0')) {
@@ -306,7 +305,7 @@ int32_t open (const uint8_t* filename)
 				default:
 					break;
 			}
-		printf("%d\n", fd_index); // debug
+		//printf("%d\n", fd_index); // debug
 		break;	// break out of the loop if fd assigned 
 		}
 	}
@@ -328,15 +327,36 @@ int32_t close (int32_t fd)
 
 	return 0;
 }
-
+/*
+ *	getargs
+ *
+ *  DESCRIPTION: call reads the program’s command line arguments into a user-level buffer
+ *  INPUTS:
+ *			buf -- pointer to user level buffer
+ * 			nbytes -- number of bytes to copy
+ *  OUTPUTS: None
+ *  RETURN VALUE: -1 - Fail
+ *								256 - Program dies by an exception
+ *								0-255 - Program executes halt system call
+ *  SIDE EFFECTS: None
+ */
 int32_t getargs (uint8_t* buf, int32_t nbytes)
 {
-	return 0; // stub
+	/* If the buffer is NULL, do nothing*/
+	if (buf == NULL) return -1;
+
+	/* copy the args from the current pcb */
+	if (memcpy(buf, curr_pcb->args, nbytes) == NULL) printf("Invliad Destination!!\n");
+
+	buf[nbytes] = '\0';
+
+	/* success */
+	return 0;
 }
 
 int32_t vidmap (uint8_t** screen_start)
 {
-	return 0; // stub
+	return 0;
 }
 
 int32_t set_handler (int32_t signum, void* handler_address)

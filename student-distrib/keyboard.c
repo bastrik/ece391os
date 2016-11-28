@@ -384,6 +384,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
   key_buffer_idx = 0;
   enter_flag = 0;
 
+  //printf("nbytes = %d, buf = %s", nbytes, buf); // debug
 
   return retval;
 }
