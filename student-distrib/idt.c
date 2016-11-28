@@ -5,7 +5,7 @@
 #include "idt.h"
 #include "rtc.h"
 #include "asm_link.h"
-
+#include "system_call.h"
 
 #define KEYBOARD_ENTRY 0x21
 #define RTC_ENTRY 0x28
@@ -78,8 +78,7 @@ void set_up_idt_handler() {
 	
 	for (i=32; i<NUM_VEC; i++)
 	{
-		if (i != 0x80)
-		{
+
 			idt[i].seg_selector = KERNEL_CS;
 			idt[i].present = 1;
 			idt[i].dpl = 0;
@@ -90,8 +89,14 @@ void set_up_idt_handler() {
 			idt[i].reserved3 = 0;
 			idt[i].reserved4= 0x00;
 			
-			SET_IDT_ENTRY(idt[i], (uint32_t)&ignore_int);
-		}
+			if (i != 0x80)
+			{	
+				SET_IDT_ENTRY(idt[i], (uint32_t)&ignore_int);
+			}
+			else
+			{
+				SET_IDT_ENTRY(idt[i], &syscall_handler);
+			}
 	}
 	/* set the IDT entry of the keyboard_handler */
 	SET_IDT_ENTRY(idt[KEYBOARD_ENTRY], (uint32_t)&keyboard_handler_asm);

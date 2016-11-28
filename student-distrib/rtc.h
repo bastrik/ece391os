@@ -4,6 +4,7 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "i8259.h"
+#include "filesys.h"
 #define IRQ8 0x08
 #define IRQ2 0x02
 //#define RATE_LIMIT 0x0F
@@ -25,6 +26,8 @@
 #define HZ512_RATE 0x07
 #define HZ1024_RATE 0x06
 #define MAX_FREQ 1024
+
+
 extern void rtc_init();
 extern void rtc_handler();
 extern int32_t rtc_open();
@@ -33,4 +36,8 @@ extern int32_t rtc_read();
 extern int32_t rtc_write(int32_t fd, const uint8_t* buf, int32_t nbyte);
 //extern void test_rtc(int freq, int flag);
 extern void test_rtc();
+
+fotp_t rtc_fotp;
+
+
 #endif /* _RTC_H */

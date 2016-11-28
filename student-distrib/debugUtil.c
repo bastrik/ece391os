@@ -4,7 +4,7 @@
 #include "types.h"
 #include "lib.h"
 
-
+/* Sihao: stand alone debug file for system call testing without pcb working */
 void test()
 {
 	clear();
@@ -65,6 +65,7 @@ void test_syscall_write(int32_t fd)
 
 void test_syscall_close(int32_t fd)
 {
+	//file_descriptor_t* filedesc = curr_pcb -> file_array;
 	uint32_t prev_flags = filedesc[fd].flags;
 	printf("Testing close()...");
 	close(fd);
@@ -83,6 +84,7 @@ void test_user_prog_page()
 
 void test_syscall_linkage()
 {
+	file_descriptor_t* filedesc = curr_pcb -> file_array;
 	printf("Testing syscall_handler()...");
 	uint8_t buf[] = "frame1.txt\0";
 	uint8_t* ptr = buf; 
@@ -95,4 +97,10 @@ void test_syscall_linkage()
 		printf("Passed!\n");
 	else 
 		printf("Failed!\n");
+}
+
+void test_kernel_page()
+{
+	uint32_t* random_stuff = 0x7ffc54;
+	printf("%d\n", *random_stuff);
 }

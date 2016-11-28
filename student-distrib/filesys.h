@@ -12,15 +12,7 @@
 #define SYS_STAT_SIZE 		64
 #define FILE_NAME_MAX_L		33				// We manually write '\0' to the end, s.t. limit name length to be 32
 #define BUF_SIZE			1600
-/*
- * file descriptor
- */
-typedef struct {
-	uint32_t fotp;			// file operations table pointer
-	uint32_t inode; 		// inode pointer
-	uint32_t file_pos; 		// file position
-	uint32_t flags; 			// flags
-} file_descriptor_t;
+
 /*
  * File operations table pointer
  */
@@ -30,6 +22,17 @@ typedef struct {
 	void* (*read)(int32_t, void*, int32_t);	// file position
 	void* (*write)(int32_t, void*, int32_t);	// STUB
 } fotp_t;
+
+/*
+ * file descriptor
+ */
+typedef struct {
+	fotp_t* fotp;			// file operations table pointer
+	uint32_t inode; 		// inode array index
+	uint32_t file_pos; 		// file position
+	uint32_t flags; 			// flags
+} file_descriptor_t;
+
 /* System Statistics struct 	*
  *								*/
 typedef struct
@@ -77,19 +80,19 @@ int32_t dir_close ();
 dentry_t dir_read ();
 int32_t dir_write();
 /* For File */
-int32_t file_open ();
-int32_t file_read ();
-int32_t file_write ();
+int32_t file_open (const uint8_t* filename);
+int32_t file_read (int32_t fd, void* buf, int32_t nbytes);
+int32_t file_write (int32_t fd, void* buf, int32_t nbytes);
+int32_t file_close (int32_t fd);
 int32_t file_load (const int8_t * filename, uint32_t address);
 void list_files();
 void read_file_name (const uint8_t* filename);
 void read_file_index (uint32_t* index);
 int fs_ready();
 
+file_descriptor_t filedesc[8]; // debug
+
 fotp_t file_fotp;
 fotp_t dir_fotp;
-
-// File descriptor declared here (for debug purpose)
-file_descriptor_t filedesc[8];
 
 #endif /* FILESYS_H */

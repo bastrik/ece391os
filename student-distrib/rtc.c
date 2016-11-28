@@ -31,7 +31,11 @@ rtc_init() {
 	/* enable able_irq */
 	enable_irq(IRQ2);
 	enable_irq(IRQ8);
-	
+
+	rtc_fotp.open = &rtc_open;
+	rtc_fotp.close = &rtc_close;
+	rtc_fotp.read = &rtc_read;
+	rtc_fotp.write = &rtc_write;	
 }
 /*
  * RTC_open

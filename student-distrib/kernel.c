@@ -179,8 +179,10 @@ entry (unsigned long magic, unsigned long addr)
 
 	sti();
 	/* Debug Util calls */
-	test();
+	//test();
+	//test_kernel_page();
 	/* Execute the first program (`shell') ... */
+	execute("shell");
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }
