@@ -226,10 +226,6 @@ int32_t execute (const uint8_t* command)
 	/* Load the program on the address specified by the MP document */
 	file_load(cmd, PROG_IMG_ADDR);
 
-	// NOTE: NEED PCB ************************************************************
-	/* Set TSS esp0 */
-	// TODO: set tss esp0
-
 	/* Set up the stack for program execution, then IRET */
 	asm volatile(" 			\n\
 		movw	%0, %%ax 		\n\

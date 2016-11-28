@@ -129,7 +129,7 @@ entry (unsigned long magic, unsigned long addr)
 		tss_desc_ptr = the_tss_desc;
 		tss.ldt_segment_selector = KERNEL_LDT;
 		tss.ss0 = KERNEL_DS;
-		tss.esp0 = 0x800000 - 4;
+		tss.esp0 = 0x800000;
 		ltr(KERNEL_TSS);
 	}
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
@@ -182,7 +182,10 @@ entry (unsigned long magic, unsigned long addr)
 	//test();
 	//test_kernel_page();
 	/* Execute the first program (`shell') ... */
-	execute("shell");
+	clear();
+	
+	uint8_t fname[33] = "shell";
+	execute(fname);
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }

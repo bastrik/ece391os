@@ -95,6 +95,7 @@ void set_up_idt_handler() {
 			}
 			else
 			{
+				idt[i].dpl = 3;
 				SET_IDT_ENTRY(idt[i], &syscall_handler);
 			}
 	}
