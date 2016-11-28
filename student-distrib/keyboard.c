@@ -397,9 +397,28 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
  *   SIDE EFFECTS: none
  */
 int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
-  //printf("%x\n", buf);
-  int retval = printf((int8_t *)buf);
-	return retval;
+  
+  int i = 0;
+  int bytes_written = 0;
+
+  /* Check the parameters */
+  if (buf == NULL || nbytes < 0) {
+  return -1;
+  }
+  if (nbytes == 0) {
+  return 0;
+  }
+
+  cli();
+
+  for (i = 0; i < nbytes && ((uint8_t*)buf)[i] != '\0' ; i++) {
+    putc( ((uint8_t*)buf)[i] );
+    bytes_written++;
+  }
+
+  sti();
+
+  return bytes_written;
 }
 
 /*

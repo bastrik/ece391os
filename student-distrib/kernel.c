@@ -184,7 +184,7 @@ entry (unsigned long magic, unsigned long addr)
 	/* Execute the first program (`shell') ... */
 	clear();
 	
-	uint8_t fname[33] = "cat";
+	uint8_t fname[33] = "syserr";
 	execute(fname);
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");

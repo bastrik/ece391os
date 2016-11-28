@@ -257,8 +257,12 @@ int32_t read (int32_t fd, void* buf, int32_t nbytes)
 	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
 	file_descriptor_t* filedesc = curr_pcb -> file_array;
 	
-	if (fd < 0 || fd > 7)
+	/* exclude the out of bound and stdout case */
+	if (fd < 0 || fd > 7 || fd == 1)
 		return -1; 	// out of bounds
+
+	/* Check if the fd is closed */
+	if (filedesc[fd].flags == 0) return -1;
 
 	(filedesc[fd].fotp)->read(fd, (void*) buf, nbytes);
 	return 0;
@@ -268,8 +272,13 @@ int32_t write (int32_t fd, const void* buf, int32_t nbytes)
 {
 	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
 	file_descriptor_t* filedesc = curr_pcb -> file_array;
-	if (fd < 0 || fd > 7)
+	
+	/* exclude the out of bound and stdin case */
+	if (fd <= 0 || fd > 7)
 		return -1; 	// out of bounds
+
+	/* Check if the fd is closed */
+	if (filedesc[fd].flags == 0) return -1;
 
 	(filedesc[fd].fotp)->write(fd, (void*) buf, nbytes);
 	return 0;
@@ -320,8 +329,9 @@ int32_t close (int32_t fd)
 	/* Sihao: declare a filedesc pointer just so it would make life easier when merging with the PCB code*/
 	file_descriptor_t* filedesc = curr_pcb -> file_array;
 
-	if (fd < 2 || fd > 7)
-		return -1; 	// out of bounds
+	if (fd < 2 || fd > 7) return -1; 	// out of bounds
+
+	if (filedesc[fd].flags == 0) return -1;
 
 	filedesc[fd].flags = 0;
 	filedesc[fd].inode = 0;
