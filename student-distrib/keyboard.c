@@ -368,12 +368,9 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
       sti();
   }
   /* fill the given buffer */
-  for (i = 0; i < nbytes; i++) {
-    if (key_buffer[i] == '\0') {
-      break;
-    }
-		((uint8_t *)buf)[i] = key_buffer[i];
-  }
+  strncpy(buf, (void*) key_buffer, nbytes);
+
+  //printf("%s\n", buf);
   /* save the return value -- the number of bytes read */
   retval = i;
   /* clear the key_buffer */
@@ -400,6 +397,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes) {
  *   SIDE EFFECTS: none
  */
 int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes) {
+  //printf("%x\n", buf);
   int retval = printf((int8_t *)buf);
 	return retval;
 }

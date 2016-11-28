@@ -19,9 +19,12 @@
 
 #define PAGE_SIZE	0x400000 	// 4MB page size
 
-#define MB132 0x8400000
+#define MB_128 0x8400000
+#define MB_132 0x8400000
 #define MB8 	0x800000
 #define KB8 	0x2000
+
+#define VID_MEM			0x00B8000
 
 /* Virtual address to mentioned in the MP doc */
 #define PROG_IMG_ADDR		0x8048000
@@ -242,7 +245,7 @@ int32_t execute (const uint8_t* command)
 		back_to_execute:	\n\
 		"
 		:
-		: "g" (USER_DS),  "g" (MB132 - 4), "g" (USER_CS), "g" (entry_point)
+		: "g" (USER_DS),  "g" (MB_132 - 4), "g" (USER_CS), "g" (entry_point)
 		: "eax", "memory"
 	);
 
@@ -346,7 +349,7 @@ int32_t getargs (uint8_t* buf, int32_t nbytes)
 	if (buf == NULL) return -1;
 
 	/* copy the args from the current pcb */
-	if (memcpy(buf, curr_pcb->args, nbytes) == NULL) printf("Invliad Destination!!\n");
+	if (memcpy(buf, curr_pcb->args, nbytes) == NULL) printf("Invalid Destination!!\n");
 
 	buf[nbytes] = '\0';
 
@@ -356,6 +359,20 @@ int32_t getargs (uint8_t* buf, int32_t nbytes)
 
 int32_t vidmap (uint8_t** screen_start)
 {
+	if (screen_start == NULL) return -1;
+
+	if (*screen_start == NULL) return -1;
+
+	/* check if the given pointer is in the user program page */
+	if ((uint32_t) screen_start >= MB_128 && (uint32_t) screen_start < MB_132)
+	{
+		*screen_start = (uint8_t *) VID_MEM;
+		return 0;
+	}
+	/* otherwise return -1 */
+	else return -1;
+
+	/* should never get here */
 	return 0;
 }
 
